@@ -6,7 +6,7 @@ const bcrypt = require('bcryptjs');
 const app = express();
 const PORT = 3001;
 
-// Enhanced CORS configuration
+
 app.use(cors({
   origin: 'http://localhost:5173',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -15,20 +15,20 @@ app.use(cors({
   optionsSuccessStatus: 200
 }));
 
-// Handle preflight requests
+
 app.options('*', cors());
 
-// Middleware
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Debug middleware
+
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.url}`);
   next();
 });
 
-// Database connection
+
 const pool = mysql.createPool({
   host: 'localhost',
   port: 3306,
@@ -39,7 +39,7 @@ const pool = mysql.createPool({
   connectionLimit: 10
 });
 
-// Test database connection
+
 pool.getConnection()
   .then(connection => {
     console.log('Database connected successfully');
@@ -49,7 +49,7 @@ pool.getConnection()
     console.error('Database connection failed:', err);
   });
 
-// Registration endpoint
+
 app.post('/register', async (req, res) => {
   try {
     const { login, password } = req.body;
@@ -80,7 +80,7 @@ app.post('/register', async (req, res) => {
   }
 });
 
-// Login endpoint
+
 app.post('/login', async (req, res) => {
   try {
     const { login, password } = req.body;
@@ -115,18 +115,18 @@ app.post('/login', async (req, res) => {
   }
 });
 
-// Health check endpoint
+
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-// Error handling middleware
+
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// 404 handler - musi być na końcu
+
 app.use((req, res) => {
   res.status(404).json({ error: 'Endpoint not found' });
 });

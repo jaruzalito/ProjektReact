@@ -37,7 +37,7 @@ const RegisterForm = () => {
           login: formData.login.trim(),
           password: formData.password
         }),
-        credentials: "include" // Only if using cookies/sessions
+        credentials: "include" 
       });
 
       const data = await response.json();

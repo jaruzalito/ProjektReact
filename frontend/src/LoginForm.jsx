@@ -37,13 +37,10 @@ const LoginForm = () => {
         setMessage('Logowanie udane!');
         setMessageType('success');
         
-        // Zapisz dane użytkownika (opcjonalnie w localStorage)
         localStorage.setItem('user', JSON.stringify(data.user));
         
-        // Przekieruj użytkownika lub zaktualizuj stan aplikacji
         console.log('Zalogowany użytkownik:', data.user);
         
-        // Opcjonalnie: przekierowanie po udanym logowaniu
         // window.location.href = '/dashboard';
         
       } else {
