@@ -2,41 +2,65 @@ import React, { useState } from "react";
 import "./RegisterForm.css";
 
 const RegisterForm = () => {
-  const [login, setLogin] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [formData, setFormData] = useState({
+    login: "",
+    password: "",
+    confirmPassword: ""
+  });
+  const [status, setStatus] = useState({ error: "", success: "" });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
+    setStatus({ error: "", success: "" });
 
-    if (password !== confirmPassword) {
-      setError("Hasła się nie zgadzają");
+    if (formData.password !== formData.confirmPassword) {
+      setStatus({ error: "Hasła się nie zgadzają", success: "" });
       return;
     }
 
     try {
-      const response = await fetch("http://localhost:3000/register", {
+      const response = await fetch("http://localhost:3001/register", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ login, password }),
+        headers: { 
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({
+          login: formData.login.trim(),
+          password: formData.password
+        }),
+        credentials: "include" // Only if using cookies/sessions
       });
 
       const data = await response.json();
 
-      if (response.ok) {
-        setSuccess(data.message || "Zarejestrowano pomyślnie");
-        setLogin("");
-        setPassword("");
-        setConfirmPassword("");
-      } else {
-        setError(data.message || "Coś poszło nie tak");
+      if (!response.ok) {
+        throw new Error(data.message || "Nie udało się zarejestrować");
       }
+
+      setStatus({ 
+        success: data.message || "Rejestracja zakończona pomyślnie!",
+        error: "" 
+      });
+      setFormData({
+        login: "",
+        password: "",
+        confirmPassword: ""
+      });
     } catch (err) {
-      setError("Błąd połączenia z serwerem");
+      console.error("Registration error:", err);
+      setStatus({
+        error: err.message || "Błąd połączenia z serwerem",
+        success: ""
+      });
     }
   };
 
@@ -46,28 +70,44 @@ const RegisterForm = () => {
       <form onSubmit={handleSubmit}>
         <input
           type="text"
+          name="login"
           placeholder="Login"
-          value={login}
-          onChange={(e) => setLogin(e.target.value)}
+          value={formData.login}
+          onChange={handleChange}
           required
+          minLength={3}
+          maxLength={20}
         />
         <input
           type="password"
+          name="password"
           placeholder="Hasło"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          value={formData.password}
+          onChange={handleChange}
           required
+          minLength={6}
         />
         <input
           type="password"
+          name="confirmPassword"
           placeholder="Powtórz hasło"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
+          value={formData.confirmPassword}
+          onChange={handleChange}
           required
+          minLength={6}
         />
         <button type="submit">Zarejestruj się</button>
-        {error && <p className="error">{error}</p>}
-        {success && <p className="success">{success}</p>}
+        
+        {status.error && (
+          <p className="error" role="alert">
+            {status.error}
+          </p>
+        )}
+        {status.success && (
+          <p className="success" role="status">
+            {status.success}
+          </p>
+        )}
       </form>
     </div>
   );
