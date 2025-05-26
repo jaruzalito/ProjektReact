@@ -32,7 +32,7 @@ Users
 _id, username, email, passwordHash
 
 InstagramProfiles
-_id, username, displayName, avatarUrl, followers, following, categoryId, createdAt, source (manual / scraper)
+_id, username, displayName, avatarUrl, followers, following, categoryId, createdAt, source (manual / scraper), avgRating
 
 Categories
 _id, name
