@@ -1,16 +1,24 @@
-require('dotenv').config()
-const express = require('express')
-const cors = require('cors')
-const app = express()
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const User = require('./models/User');
+const InstagramProfile = require('./models/InstagramProfile');
+const Comment = require('./models/Comment');
+const Rating = require('./models/Rating');
+require('dotenv').config(); // wczytuje zmienne środowiskowe z .env
 
-app.use(cors())
-app.use(express.json())
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-app.get('/', (req, res) => {
-    res.send('Backend poczatek')
-})
+app.use(cors());
+app.use(express.json());
 
-const PORT = process.env.PORT || 5000;
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("Połączono z MongoDB"))
+  .catch((err) => console.error("Błąd połączenia z MongoDB", err));
+
+app.use('/api/ratings', require('./routes/ratings'));
+
 app.listen(PORT, () => {
-    console.log(`Server started on port http://localhost:${PORT}`)
-})
+  console.log(`Serwer działa na porcie ${PORT}`);
+});
