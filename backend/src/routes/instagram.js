@@ -5,7 +5,7 @@ const puppeteer = require('puppeteer');
 function parseInstagramDescription(description) {
   if (!description) return null;
 
-  // Regex do wyciągania danych z opisu Instagram
+
   const regex = /(\d+(?:,\d+)*)\s+Followers?,\s*(\d+(?:,\d+)*)\s+Following,\s*(\d+(?:,\d+)*)\s+Posts?\s*-\s*(.+?)\s*\(@(.+?)\)\s*on\s*Instagram:?\s*"?([^"]*)"?/i;
   
   const match = description.match(regex);
@@ -21,7 +21,7 @@ function parseInstagramDescription(description) {
     };
   }
   
-  // Fallback dla innych formatów
+
   const simpleRegex = /(\d+(?:,\d+)*)\s+Followers?,\s*(\d+(?:,\d+)*)\s+Following,\s*(\d+(?:,\d+)*)\s+Posts?/i;
   const simpleMatch = description.match(simpleRegex);
   
@@ -104,7 +104,7 @@ router.get('/:username', async (req, res) => {
       following: parsedData.following,
       posts: parsedData.posts,
       profilePic: profile.profilePic,
-      rawDescription: profile.description // dla debugowania
+      rawDescription: profile.description
     });
     
   } catch (error) {
