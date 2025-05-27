@@ -3,10 +3,14 @@ const cors = require('cors');
 const mysql = require('mysql2/promise');
 const bcrypt = require('bcryptjs');
 
+// Create app instance FIRST
 const app = express();
 const PORT = 3001;
 
+// Import routes AFTER app is created
+const instagramRouter = require("./routes/instagram");
 
+// Configure CORS
 app.use(cors({
   origin: 'http://localhost:5173',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -15,18 +19,19 @@ app.use(cors({
   optionsSuccessStatus: 200
 }));
 
-
 app.options('*', cors());
 
-
+// Middlewar
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
 
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.url}`);
   next();
 });
+
+
+app.use("/api/instagram", instagramRouter);
 
 
 const pool = mysql.createPool({
@@ -39,7 +44,6 @@ const pool = mysql.createPool({
   connectionLimit: 10
 });
 
-
 pool.getConnection()
   .then(connection => {
     console.log('Database connected successfully');
@@ -48,7 +52,6 @@ pool.getConnection()
   .catch(err => {
     console.error('Database connection failed:', err);
   });
-
 
 app.post('/register', async (req, res) => {
   try {
@@ -79,7 +82,6 @@ app.post('/register', async (req, res) => {
     return res.status(500).json({ error: 'Server error' });
   }
 });
-
 
 app.post('/login', async (req, res) => {
   try {
@@ -115,7 +117,6 @@ app.post('/login', async (req, res) => {
   }
 });
 
-
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 });
@@ -125,7 +126,6 @@ app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
   res.status(500).json({ error: 'Internal server error' });
 });
-
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Endpoint not found' });
@@ -137,4 +137,5 @@ app.listen(PORT, () => {
   console.log('POST /register - User registration');
   console.log('POST /login - User login');
   console.log('GET /health - Health check');
+  console.log('GET /api/instagram/:username - Instagram profile data');
 });
