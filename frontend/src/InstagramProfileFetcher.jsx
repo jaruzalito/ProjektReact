@@ -19,7 +19,7 @@ const InstagramProfileFetcher = () => {
     try {
       console.log('Fetching profile for:', username);
       
-      const response = await fetch(`http://localhost:5173/api/instagram/${username}`);
+      const response = await fetch(`http://localhost:3001/api/instagram/${username}`);
       const data = await response.json();
 
       if (!response.ok) {
@@ -78,18 +78,9 @@ const InstagramProfileFetcher = () => {
 
       {profile && (
         <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-          <div className="flex items-center mb-4">
-            {profile.profilePic && (
-              <img
-                src={profile.profilePic}
-                alt="Profile"
-                className="w-16 h-16 rounded-full mr-4"
-              />
-            )}
-            <div>
-              <h3 className="text-lg font-semibold">{profile.fullName}</h3>
-              <p className="text-gray-600">@{profile.username}</p>
-            </div>
+          <div className="mb-4">
+            <h3 className="text-lg font-semibold">{profile.fullName}</h3>
+            <p className="text-gray-600">@{profile.username}</p>
           </div>
 
           <div className="grid grid-cols-3 gap-4 mb-4">

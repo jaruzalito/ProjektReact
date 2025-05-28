@@ -7,6 +7,11 @@ require('dotenv').config();
 // Create app instance FIRST
 const app = express();
 const PORT = process.env.PORT || 3001;
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
+});
+
 
 // Configure CORS - allow both common Vite ports
 const allowedOrigins = [

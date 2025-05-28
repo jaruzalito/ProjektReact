@@ -1,12 +1,13 @@
 
 # Dockerfile.backend
-FROM node:18-alpine
+FROM node:18
 
 WORKDIR /app
 
 # Kopiuj pliki package.json i package-lock.json
 COPY backend/package*.json ./
 
+RUN apt-get update && apt-get install -y chromium
 # Instaluj zależności
 RUN npm ci --omit=dev
 

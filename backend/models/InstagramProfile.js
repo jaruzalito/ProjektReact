@@ -2,11 +2,12 @@ const mongoose = require('mongoose');
 
 const instagramProfileSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
-  profileImage: { type: String },
   followers: { type: Number },
   following: { type: Number },
-  category: { type: String },
-  avgRating: { type: Number, default: null }, // <-- dodane
+  posts: { type: Number },
+  fullName: { type: String },
+  bio: { type: String },
+  avgRating: { type: Number, default: null },
   createdAt: { type: Date, default: Date.now }
 });
 
