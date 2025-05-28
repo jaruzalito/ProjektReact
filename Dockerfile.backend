@@ -1,10 +1,20 @@
-# Backend Dockerfile
-FROM node:18
+
+# Dockerfile.backend
+FROM node:18-alpine
 
 WORKDIR /app
-COPY backend/package*.json ./
-RUN npm install
-COPY backend/ .
 
-EXPOSE 5000
-CMD ["node", "src/server.js"]
+# Kopiuj pliki package.json i package-lock.json
+COPY backend/package*.json ./
+
+# Instaluj zależności
+RUN npm ci --omit=dev
+
+# Kopiuj kod źródłowy
+COPY backend/ ./
+
+# Ustaw port
+EXPOSE 3001
+
+# Uruchom aplikację
+CMD ["npm", "start"]
