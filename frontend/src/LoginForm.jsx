@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 
-const AuthForms = () => {
+const LoginForm = ({ onLogin }) => {
   const [currentView, setCurrentView] = useState('login');
-  const [user, setUser] = useState(null); // Using React state instead of localStorage
+  const [user, setUser] = useState(null);
 
-  const LoginForm = () => {
+  const LoginFormComponent = () => {
     const [formData, setFormData] = useState({
       login: '',
       password: ''
@@ -53,16 +53,14 @@ const AuthForms = () => {
           setMessage('Logowanie udane!');
           setMessageType('success');
           
-          // Store user data in React state instead of localStorage
           setUser(data.user);
+          if (onLogin) onLogin(data.user);
           
           console.log('Zalogowany użytkownik:', data.user);
           
-          // Clear form
           setFormData({ login: '', password: '' });
           
         } else {
-          // Handle specific error codes
           if (response.status === 401) {
             setMessage('Nieprawidłowy login lub hasło');
           } else if (response.status === 429) {
@@ -168,7 +166,6 @@ const AuthForms = () => {
       setStatus({ error: "", success: "" });
       setLoading(true);
 
-      // Client-side validation
       if (formData.password !== formData.confirmPassword) {
         setStatus({ error: "Hasła się nie zgadzają", success: "" });
         setLoading(false);
@@ -222,7 +219,6 @@ const AuthForms = () => {
             confirmPassword: ""
           });
         } else {
-          // Handle specific error codes
           if (response.status === 409) {
             setStatus({ error: "Użytkownik o takim loginie już istnieje", success: "" });
           } else if (response.status === 400) {
@@ -331,6 +327,7 @@ const AuthForms = () => {
         onClick={() => {
           setUser(null);
           setCurrentView('login');
+          if (onLogin) onLogin(null);
         }}
         className="submit-btn logout-btn"
       >
@@ -380,7 +377,7 @@ const AuthForms = () => {
           box-sizing: border-box;
           transition: border-color 0.3s ease, box-shadow 0.3s ease;
           background: white;
-          color:black;
+          color: black;
         }
 
         input:focus {
@@ -484,7 +481,7 @@ const AuthForms = () => {
       {user ? (
         <Dashboard />
       ) : currentView === 'login' ? (
-        <LoginForm />
+        <LoginFormComponent />
       ) : (
         <RegisterForm />
       )}
@@ -492,4 +489,4 @@ const AuthForms = () => {
   );
 };
 
-export default AuthForms;
+export default LoginForm;
