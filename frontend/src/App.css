@@ -31,7 +31,7 @@ html, body, #root {
   flex-direction: column;
 }
 
-/* Header */
+
 .header {
   background: var(--bg-darker);
   border-bottom: 1px solid var(--border-color);
@@ -81,13 +81,13 @@ html, body, #root {
   font-size: 1.2rem;
 }
 
-/* Main content */
+
 .main-content {
   flex: 1;
   padding: 20px 0;
 }
 
-/* Home page */
+
 .hero-section {
   background: var(--bg-darker);
   padding: 60px 20px;
@@ -145,7 +145,7 @@ html, body, #root {
   padding: 0 20px;
 }
 
-/* Profile card */
+
 .profile-card {
   background: var(--bg-darker);
   border-radius: 12px;
@@ -218,7 +218,7 @@ html, body, #root {
   background: #333;
 }
 
-/* Search page */
+
 .search-page {
   max-width: 600px;
   margin: 0 auto;
@@ -272,7 +272,7 @@ html, body, #root {
   background: #c91a5a;
 }
 
-/* FAQ page */
+
 .faq-page {
   max-width: 800px;
   margin: 0 auto;
@@ -313,7 +313,7 @@ html, body, #root {
   line-height: 1.5;
 }
 
-/* Footer */
+
 .footer {
   background: var(--bg-darker);
   border-top: 1px solid var(--border-color);
@@ -324,7 +324,7 @@ html, body, #root {
   margin-top: auto;
 }
 
-/* Responsive */
+
 @media (max-width: 768px) {
   .header-content {
     flex-direction: column;
@@ -343,7 +343,7 @@ html, body, #root {
     grid-template-columns: 1fr;
   }
 }
-/* Dodatkowe style dla systemu logowania */
+
 
 .login-link {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -479,7 +479,7 @@ html, body, #root {
   font-weight: 500;
 }
 
-/* Responsive styles */
+
 @media (max-width: 768px) {
   .user-nav {
     flex-direction: column;

@@ -65,20 +65,20 @@ router.get('/:username', async (req, res) => {
 
     const page = await browser.newPage();
 
-    // Ustawienie bardziej realistycznego user agenta
+
     await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
     
-    // Dodatkowe właściwości przeglądarki
+
     await page.evaluateOnNewDocument(() => {
       Object.defineProperty(navigator, 'webdriver', {
         get: () => undefined,
       });
     });
 
-    // Ustawienie viewport
+
     await page.setViewport({ width: 1920, height: 1080 });
 
-    // Dodanie losowego opóźnienia
+
     await delay(Math.random() * 2000 + 1000);
 
     console.log(`Przechodzenie do URL: https://www.instagram.com/${username}/`);
@@ -88,12 +88,12 @@ router.get('/:username', async (req, res) => {
       timeout: 30000
     });
 
-    // Sprawdzenie czy strona się załadowała poprawnie
+
     if (!response.ok()) {
       throw new Error(`HTTP ${response.status()}: ${response.statusText()}`);
     }
 
-    // Sprawdzenie czy nie zostaliśmy przekierowani na stronę logowania
+
     const currentUrl = page.url();
     console.log(`Obecny URL: ${currentUrl}`);
     
@@ -101,10 +101,10 @@ router.get('/:username', async (req, res) => {
       throw new Error('Instagram wymaga logowania lub wykrył bota');
     }
 
-    // Dodatkowe opóźnienie przed sprawdzeniem zawartości
+
     await delay(2000);
 
-    // Sprawdzenie czy strona zawiera błąd 404
+
     const pageContent = await page.content();
     if (pageContent.includes('Sorry, this page isn\'t available') || 
         pageContent.includes('The link you followed may be broken')) {
@@ -157,7 +157,7 @@ router.get('/:username', async (req, res) => {
       createdAt: new Date()
     };
 
-    // Zapisanie do bazy danych
+
     await InstagramProfile.findOneAndUpdate(
       { username: result.username },
       { $set: result },
@@ -177,7 +177,7 @@ router.get('/:username', async (req, res) => {
     
     console.error('Błąd podczas pobierania profilu Instagram:', error);
     
-    // Różne typy błędów
+
     if (error.message.includes('Navigation timeout')) {
       return res.status(408).json({ 
         error: 'Przekroczono limit czasu ładowania strony',

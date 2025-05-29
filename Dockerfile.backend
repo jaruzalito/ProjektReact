@@ -1,7 +1,7 @@
-# Użyj oficjalnego obrazu Node.js
+
 FROM node:18-slim
 
-# Zainstaluj potrzebne pakiety systemowe dla Puppeteer
+
 RUN apt-get update && apt-get install -y \
     wget \
     gnupg \
@@ -33,32 +33,32 @@ RUN apt-get update && apt-get install -y \
     libgdk-pixbuf2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-# Ustaw zmienne środowiskowe dla Puppeteer
+
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
-# Utwórz katalog aplikacji
+
 WORKDIR /usr/src/app
 
-# Skopiuj package.json i package-lock.json
+
 COPY package*.json ./
 
-# Zainstaluj zależności Node.js
+
 RUN npm ci --only=production
 
-# Skopiuj kod aplikacji
+
 COPY . .
 
-# Utwórz użytkownika bez uprawnień roota (ważne dla bezpieczeństwa)
+
 RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
     && mkdir -p /home/pptruser/Downloads \
     && chown -R pptruser:pptruser /home/pptruser \
     && chown -R pptruser:pptruser /usr/src/app
 
-# Przełącz na użytkownika bez uprawnień roota
+
 USER pptruser
 
-# Eksponuj port
+
 EXPOSE 3001
 
 # Uruchom aplikację

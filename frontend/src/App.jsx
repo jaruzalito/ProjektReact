@@ -130,7 +130,7 @@ function ProfileCard({ username, trustLevel, warning, user }) {
   );
 }
 
-// Zaktualizowana funkcja ProfileSearchPage z prawdziwym API call
+
 
 function ProfileSearchPage({ user }) {
   const [username, setUsername] = useState('');
@@ -138,26 +138,31 @@ function ProfileSearchPage({ user }) {
   const [profileData, setProfileData] = useState(null);
   const [error, setError] = useState('');
 
-  // Funkcja do obliczania poziomu zaufania na podstawie danych profilu
+
+  const API_BASE_URL = process.env.NODE_ENV === 'production' 
+    ? 'http://localhost:3001' 
+    : 'http://localhost:3001';
+
+
   const calculateTrustLevel = (profile) => {
-    let trust = 50; // bazowy poziom
+    let trust = 50; 
     
-    // Więcej followerów = więcej zaufania (do pewnego poziomu)
+
     if (profile.followers > 1000) trust += 15;
     if (profile.followers > 10000) trust += 10;
     if (profile.followers > 100000) trust += 5;
     
-    // Stosunek following/followers
+
     const ratio = profile.following / Math.max(profile.followers, 1);
-    if (ratio < 0.5) trust += 10; // nie followuje zbyt wielu
-    if (ratio > 2) trust -= 15; // followuje więcej niż ma followerów
-    if (ratio > 5) trust -= 20; // podejrzane
+    if (ratio < 0.5) trust += 10; 
+    if (ratio > 2) trust -= 15; 
+    if (ratio > 5) trust -= 20; 
     
-    // Liczba postów
+
     if (profile.posts > 50) trust += 10;
     if (profile.posts < 10) trust -= 15;
     
-    // Pełna nazwa i bio
+
     if (profile.fullName && profile.fullName !== 'Nieznane') trust += 5;
     if (profile.bio && profile.bio !== 'Brak opisu' && profile.bio.length > 10) trust += 10;
     
@@ -180,11 +185,32 @@ function ProfileSearchPage({ user }) {
     setProfileData(null);
     
     try {
-      const response = await fetch(`/api/instagram/${username.trim()}`);
+      const apiUrl = `${API_BASE_URL}/api/instagram/${username.trim()}`;
+      console.log('Wysyłam żądanie do:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include'
+      });
+      
+      console.log('Status odpowiedzi:', response.status);
+      console.log('Headers odpowiedzi:', response.headers);
+      
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const textResponse = await response.text();
+        console.error('Otrzymano HTML zamiast JSON:', textResponse.substring(0, 200));
+        throw new Error('Serwer zwrócił HTML zamiast JSON - sprawdź konfigurację CORS i URL API');
+      }
+      
       const data = await response.json();
+      console.log('Otrzymane dane:', data);
       
       if (!response.ok) {
-        throw new Error(data.error || 'Błąd podczas pobierania profilu');
+        throw new Error(data.error || `HTTP ${response.status}: Błąd podczas pobierania profilu`);
       }
       
       if (data.success) {
@@ -194,9 +220,12 @@ function ProfileSearchPage({ user }) {
           trustLevel,
           warnings: generateWarnings(data, trustLevel)
         });
+      } else {
+        throw new Error(data.error || 'Nie udało się pobrać danych profilu');
       }
     } catch (err) {
-      setError(err.message);
+      console.error('Błąd podczas wyszukiwania profilu:', err);
+      setError(`Błąd: ${err.message}`);
     } finally {
       setLoading(false);
     }
