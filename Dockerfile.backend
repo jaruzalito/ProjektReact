@@ -1,20 +1,64 @@
+# Użyj oficjalnego obrazu Node.js
+FROM node:18-slim
 
-# Dockerfile.backend
-FROM node:18
+# Zainstaluj potrzebne pakiety systemowe dla Puppeteer
+RUN apt-get update && apt-get install -y \
+    wget \
+    gnupg \
+    ca-certificates \
+    procps \
+    libxss1 \
+    chromium \
+    fonts-liberation \
+    libasound2 \
+    libatk-bridge2.0-0 \
+    libdrm2 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxrandr2 \
+    libgbm1 \
+    libxss1 \
+    libnss3 \
+    libnspr4 \
+    libxkbcommon0 \
+    libxcursor1 \
+    libxrender1 \
+    libxi6 \
+    libxtst6 \
+    libasound2-dev \
+    libpangocairo-1.0-0 \
+    libatk1.0-0 \
+    libcairo-gobject2 \
+    libgtk-3-0 \
+    libgdk-pixbuf2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
+# Ustaw zmienne środowiskowe dla Puppeteer
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
-# Kopiuj pliki package.json i package-lock.json
-COPY backend/package*.json ./
+# Utwórz katalog aplikacji
+WORKDIR /usr/src/app
 
-RUN apt-get update && apt-get install -y chromium
-# Instaluj zależności
-RUN npm ci --omit=dev
+# Skopiuj package.json i package-lock.json
+COPY package*.json ./
 
-# Kopiuj kod źródłowy
-COPY backend/ ./
+# Zainstaluj zależności Node.js
+RUN npm ci --only=production
 
-# Ustaw port
+# Skopiuj kod aplikacji
+COPY . .
+
+# Utwórz użytkownika bez uprawnień roota (ważne dla bezpieczeństwa)
+RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
+    && mkdir -p /home/pptruser/Downloads \
+    && chown -R pptruser:pptruser /home/pptruser \
+    && chown -R pptruser:pptruser /usr/src/app
+
+# Przełącz na użytkownika bez uprawnień roota
+USER pptruser
+
+# Eksponuj port
 EXPOSE 3001
 
 # Uruchom aplikację
