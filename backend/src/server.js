@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
-// Create app instance FIRST
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 app.use((req, res, next) => {
@@ -13,7 +13,7 @@ app.use((req, res, next) => {
 });
 
 
-// Configure CORS - allow both common Vite ports
+
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
@@ -23,7 +23,6 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
     if (allowedOrigins.indexOf(origin) !== -1) {
@@ -38,20 +37,20 @@ app.use(cors({
   optionsSuccessStatus: 200
 }));
 
-// Handle preflight requests
+
 app.options('*', cors());
 
-// Middleware
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Logging middleware
+
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.url} - Origin: ${req.headers.origin}`);
   next();
 });
 
-// MongoDB connection
+
 const connectDB = async () => {
   try {
     const conn = await mongoose.connect(process.env.MONGO_URI);
@@ -62,10 +61,10 @@ const connectDB = async () => {
   }
 };
 
-// Connect to MongoDB
+
 connectDB();
 
-// User Schema
+
 const userSchema = new mongoose.Schema({
   login: {
     type: String,
@@ -83,22 +82,21 @@ const userSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Index for better performance
+
 userSchema.index({ login: 1 });
 
-// User model
+
 const User = mongoose.model('User', userSchema);
 
-// Import routes AFTER database connection and models
+
 try {
   const instagramRouter = require("./routes/instagram");
   app.use("/api/instagram", instagramRouter);
 } catch (error) {
   console.error('Error loading Instagram routes:', error);
-  // Continue without Instagram routes if there's an error
 }
 
-// Registration endpoint
+
 app.post('/register', async (req, res) => {
   try {
     console.log('Registration attempt:', { login: req.body.login });
@@ -113,15 +111,15 @@ app.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'Password must be at least 6 characters long' });
     }
 
-    // Check if user already exists
+
     const existingUser = await User.findOne({ 
     login: { $regex: new RegExp(`^${req.body.login}$`, 'i') } 
     });
 
-    // Hash password
+
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Create new user
+
     const newUser = new User({
       login: login.trim().toLowerCase(),
       password: hashedPassword
@@ -139,7 +137,7 @@ app.post('/register', async (req, res) => {
   } catch (error) {
     console.error('Registration error:', error);
     
-    // Handle duplicate key error
+
     if (error.code === 11000) {
       return res.status(409).json({ error: 'Username already taken' });
     }
@@ -148,7 +146,7 @@ app.post('/register', async (req, res) => {
   }
 });
 
-// Login endpoint
+
 app.post('/login', async (req, res) => {
   try {
     console.log('Login attempt:', { login: req.body.login });
@@ -159,13 +157,13 @@ app.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Login and password are required' });
     }
 
-    // Find user by login
+
     const user = await User.findOne({ login: login.trim().toLowerCase() });
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // Verify password
+
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(401).json({ error: 'Invalid credentials' });
@@ -184,7 +182,7 @@ app.post('/login', async (req, res) => {
   }
 });
 
-// Get all users endpoint (for testing/admin purposes)
+
 app.get('/users', async (req, res) => {
   try {
     const users = await User.find({}, 'login createdAt').sort({ createdAt: -1 });
@@ -195,7 +193,7 @@ app.get('/users', async (req, res) => {
   }
 });
 
-// Health check endpoint
+
 app.get('/health', (req, res) => {
   const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
   res.status(200).json({ 
@@ -207,19 +205,19 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Error handling middleware
+
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// 404 handler
+
 app.use((req, res) => {
   console.log(`404 - Route not found: ${req.method} ${req.url}`);
   res.status(404).json({ error: 'Endpoint not found' });
 });
 
-// Graceful shutdown
+
 process.on('SIGINT', async () => {
   console.log('\nShutting down gracefully...');
   try {
@@ -232,7 +230,7 @@ process.on('SIGINT', async () => {
   }
 });
 
-// Start server
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://localhost:${PORT}`);
   console.log('Allowed CORS origins:', allowedOrigins);

@@ -1,20 +1,64 @@
 
-# Dockerfile.backend
-FROM node:18
+FROM node:18-slim
 
-WORKDIR /app
 
-# Kopiuj pliki package.json i package-lock.json
-COPY backend/package*.json ./
+RUN apt-get update && apt-get install -y \
+    wget \
+    gnupg \
+    ca-certificates \
+    procps \
+    libxss1 \
+    chromium \
+    fonts-liberation \
+    libasound2 \
+    libatk-bridge2.0-0 \
+    libdrm2 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxrandr2 \
+    libgbm1 \
+    libxss1 \
+    libnss3 \
+    libnspr4 \
+    libxkbcommon0 \
+    libxcursor1 \
+    libxrender1 \
+    libxi6 \
+    libxtst6 \
+    libasound2-dev \
+    libpangocairo-1.0-0 \
+    libatk1.0-0 \
+    libcairo-gobject2 \
+    libgtk-3-0 \
+    libgdk-pixbuf2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update && apt-get install -y chromium
-# Instaluj zależności
-RUN npm ci --omit=dev
 
-# Kopiuj kod źródłowy
-COPY backend/ ./
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
-# Ustaw port
+
+WORKDIR /usr/src/app
+
+
+COPY package*.json ./
+
+
+RUN npm ci --only=production
+
+
+COPY . .
+
+
+RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
+    && mkdir -p /home/pptruser/Downloads \
+    && chown -R pptruser:pptruser /home/pptruser \
+    && chown -R pptruser:pptruser /usr/src/app
+
+
+USER pptruser
+
+
 EXPOSE 3001
 
 # Uruchom aplikację

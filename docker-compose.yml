@@ -21,6 +21,7 @@ services:
     ports:
       - "3001:3001"
     environment:
+      - DOCKER=true
       - NODE_ENV=production
       - MONGO_URI=mongodb://mongo:27017/instatag
       - PORT=3001

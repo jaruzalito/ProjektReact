@@ -130,10 +130,46 @@ function ProfileCard({ username, trustLevel, warning, user }) {
   );
 }
 
+
+
 function ProfileSearchPage({ user }) {
   const [username, setUsername] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [profileData, setProfileData] = useState(null);
+  const [error, setError] = useState('');
 
-  const handleSearch = () => {
+
+  const API_BASE_URL = process.env.NODE_ENV === 'production' 
+    ? 'http://localhost:3001' 
+    : 'http://localhost:3001';
+
+
+  const calculateTrustLevel = (profile) => {
+    let trust = 50; 
+    
+
+    if (profile.followers > 1000) trust += 15;
+    if (profile.followers > 10000) trust += 10;
+    if (profile.followers > 100000) trust += 5;
+    
+
+    const ratio = profile.following / Math.max(profile.followers, 1);
+    if (ratio < 0.5) trust += 10; 
+    if (ratio > 2) trust -= 15; 
+    if (ratio > 5) trust -= 20; 
+    
+
+    if (profile.posts > 50) trust += 10;
+    if (profile.posts < 10) trust -= 15;
+    
+
+    if (profile.fullName && profile.fullName !== 'Nieznane') trust += 5;
+    if (profile.bio && profile.bio !== 'Brak opisu' && profile.bio.length > 10) trust += 10;
+    
+    return Math.max(0, Math.min(100, trust));
+  };
+
+  const handleSearch = async () => {
     if (!user) {
       alert('Zaloguj się, aby móc sprawdzać profile!');
       return;
@@ -144,8 +180,72 @@ function ProfileSearchPage({ user }) {
       return;
     }
     
-    // Tutaj logika wyszukiwania
-    console.log('Searching for:', username);
+    setLoading(true);
+    setError('');
+    setProfileData(null);
+    
+    try {
+      const apiUrl = `${API_BASE_URL}/api/instagram/${username.trim()}`;
+      console.log('Wysyłam żądanie do:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include'
+      });
+      
+      console.log('Status odpowiedzi:', response.status);
+      console.log('Headers odpowiedzi:', response.headers);
+      
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const textResponse = await response.text();
+        console.error('Otrzymano HTML zamiast JSON:', textResponse.substring(0, 200));
+        throw new Error('Serwer zwrócił HTML zamiast JSON - sprawdź konfigurację CORS i URL API');
+      }
+      
+      const data = await response.json();
+      console.log('Otrzymane dane:', data);
+      
+      if (!response.ok) {
+        throw new Error(data.error || `HTTP ${response.status}: Błąd podczas pobierania profilu`);
+      }
+      
+      if (data.success) {
+        const trustLevel = calculateTrustLevel(data);
+        setProfileData({
+          ...data,
+          trustLevel,
+          warnings: generateWarnings(data, trustLevel)
+        });
+      } else {
+        throw new Error(data.error || 'Nie udało się pobrać danych profilu');
+      }
+    } catch (err) {
+      console.error('Błąd podczas wyszukiwania profilu:', err);
+      setError(`Błąd: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const generateWarnings = (profile, trustLevel) => {
+    const warnings = [];
+    
+    if (trustLevel < 30) warnings.push('Bardzo niski poziom zaufania!');
+    if (profile.following / Math.max(profile.followers, 1) > 5) warnings.push('Podejrzanie dużo obserwowanych!');
+    if (profile.posts < 5) warnings.push('Bardzo mało postów');
+    if (profile.followers < 50 && profile.following > 500) warnings.push('Możliwy bot lub spam');
+    
+    return warnings;
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
   };
 
   return (
@@ -158,22 +258,105 @@ function ProfileSearchPage({ user }) {
             <Link to="/login" className="login-prompt-link">Zaloguj się tutaj</Link>
           </div>
         )}
+        
         <div className="search-box">
           <input 
             type="text" 
             placeholder="Wpisz nazwę użytkownika..." 
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            disabled={!user}
+            onKeyPress={handleKeyPress}
+            disabled={!user || loading}
           />
           <button 
             className="search-button" 
             onClick={handleSearch}
-            disabled={!user}
+            disabled={!user || loading}
           >
-            <i className="fas fa-search"></i> Szukaj
+            {loading ? (
+              <>
+                <i className="fas fa-spinner fa-spin"></i> Sprawdzam...
+              </>
+            ) : (
+              <>
+                <i className="fas fa-search"></i> Szukaj
+              </>
+            )}
           </button>
         </div>
+
+        {error && (
+          <div className="error-message">
+            <i className="fas fa-exclamation-triangle"></i>
+            <p>{error}</p>
+          </div>
+        )}
+
+        {profileData && (
+          <div className="profile-result">
+            <div className="profile-header">
+              <div className="profile-avatar-large">
+                <i className="fas fa-user-circle"></i>
+              </div>
+              <div className="profile-info">
+                <h2>@{profileData.username}</h2>
+                <p className="full-name">{profileData.fullName}</p>
+                <div className={`trust-score ${profileData.trustLevel > 70 ? 'high' : profileData.trustLevel > 40 ? 'medium' : 'low'}`}>
+                  <span className="trust-label">Poziom zaufania:</span>
+                  <span className="trust-value">{profileData.trustLevel}%</span>
+                  <span className="trust-icon">
+                    {profileData.trustLevel > 70 ? '✅' : profileData.trustLevel > 40 ? '⚠️' : '❌'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="profile-stats">
+              <div className="stat">
+                <i className="fas fa-users"></i>
+                <span className="stat-number">{profileData.followers.toLocaleString()}</span>
+                <span className="stat-label">Obserwujący</span>
+              </div>
+              <div className="stat">
+                <i className="fas fa-user-plus"></i>
+                <span className="stat-number">{profileData.following.toLocaleString()}</span>
+                <span className="stat-label">Obserwowani</span>
+              </div>
+              <div className="stat">
+                <i className="fas fa-camera"></i>
+                <span className="stat-number">{profileData.posts.toLocaleString()}</span>
+                <span className="stat-label">Posty</span>
+              </div>
+            </div>
+
+            {profileData.bio && profileData.bio !== 'Brak opisu' && (
+              <div className="profile-bio">
+                <h4>Opis profilu:</h4>
+                <p>"{profileData.bio}"</p>
+              </div>
+            )}
+
+            {profileData.warnings && profileData.warnings.length > 0 && (
+              <div className="warnings">
+                <h4>⚠️ Ostrzeżenia:</h4>
+                <ul>
+                  {profileData.warnings.map((warning, index) => (
+                    <li key={index}>{warning}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div className="profile-actions">
+              <button className="btn-primary">
+                <i className="fas fa-thumbs-up"></i> Dodaj opinię
+              </button>
+              <button className="btn-secondary">
+                <i className="fas fa-flag"></i> Zgłoś profil
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
