@@ -1,25 +1,37 @@
 const express = require('express');
 const router = express.Router();
-
 const Rating = require('../../models/Rating');
+const InstagramProfile = require('../../models/InstagramProfile');
 const recalculateAvgRating = require('../../utils/recalculateAvgRating');
 
+// POST /api/ratings - dodaj lub zaktualizuj ocenę
 router.post('/', async (req, res) => {
-  try {
-    const { user, profile, value } = req.body;
+  const { username, rating, userId } = req.body;
 
-    const rating = await Rating.findOneAndUpdate(
-      { user, profile },
-      { value },
-      { new: true, upsert: true, setDefaultsOnInsert: true }
+  if (!username || !rating || !userId) {
+    return res.status(400).json({ error: 'Brakuje wymaganych danych' });
+  }
+
+  try {
+    const profile = await InstagramProfile.findOne({ username });
+    if (!profile) {
+      return res.status(404).json({ error: 'Nie znaleziono profilu' });
+    }
+
+    // upsert = znajdź i zaktualizuj lub dodaj nową
+    await Rating.findOneAndUpdate(
+      { user: userId, profile: profile._id },
+      { value: rating },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
     );
 
-    await recalculateAvgRating(profile);
+    // Przelicz średnią ocenę profilu
+    await recalculateAvgRating(profile._id);
 
-    res.status(200).json({ success: true, rating });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Błąd zapisu oceny' });
+    res.status(200).json({ message: 'Ocena zapisana' });
+  } catch (error) {
+    console.error('Błąd zapisu oceny:', error);
+    res.status(500).json({ error: 'Błąd serwera' });
   }
 });
 

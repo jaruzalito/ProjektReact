@@ -101,8 +101,25 @@ const verifyToken = (req, res, next) => {
 try {
   const instagramRouter = require("./routes/instagram");
   app.use("/api/instagram", instagramRouter);
+  console.log('Instagram routes loaded successfully');
 } catch (error) {
   console.error('Error loading Instagram routes:', error);
+}
+
+try {
+  const commentRoutes = require('./routes/comments');
+  app.use('/api/comments', commentRoutes);
+  console.log('Comment routes loaded successfully');
+} catch (error) {
+  console.error('Error loading comment routes:', error);
+}
+
+try {
+  const ratingRoutes = require('./routes/ratings');
+  app.use('/api/ratings', ratingRoutes);
+  console.log('Rating routes loaded successfully');
+} catch (error) {
+  console.error('Error loading rating routes:', error);
 }
 
 app.post('/register', async (req, res) => {
@@ -276,4 +293,7 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log('GET /users - Get all users (protected)');
   console.log('GET /health - Health check');
   console.log('GET /api/instagram/:username - Instagram profile data');
+  console.log('GET /api/comments/:username - Get comments for user');
+  console.log('POST /api/comments - Add new comment');
+  console.log('POST /api/ratings - Add/update rating');
 });
