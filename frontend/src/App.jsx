@@ -5,6 +5,29 @@ import './App.css';
 
 function App() {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        const response = await fetch('http://localhost:3001/verify-token', {
+          method: 'GET',
+          credentials: 'include'
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setUser(data.user);
+        }
+      } catch (error) {
+        console.error('Błąd podczas sprawdzania statusu logowania:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuthStatus();
+  }, []);
 
   const handleLogin = (userData) => {
     setUser(userData);
@@ -12,7 +35,24 @@ function App() {
 
   const handleLogout = () => {
     setUser(null);
+    
+    fetch('http://localhost:3001/logout', {
+      method: 'POST',
+      credentials: 'include'
+    }).catch(err => console.error('Błąd podczas wylogowywania:', err));
   };
+
+  // Pokaż loading podczas sprawdzania statusu logowania
+  if (loading) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner">
+          <i className="fas fa-spinner fa-spin"></i>
+          <p>Ładowanie...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <BrowserRouter>
@@ -42,7 +82,7 @@ function App() {
                 </Link>
               ) : (
                 <div className="user-nav">
-                  <span className="user-greeting">Witaj, {user.login}!</span>
+                  <span className="user-greeting">Witaj, {user.login || user.username}!</span>
                   <button onClick={handleLogout} className="logout-btn-nav">
                     <i className="fas fa-sign-out-alt"></i>
                     <span>Wyloguj</span>
@@ -207,7 +247,7 @@ function ProfileSearchPage({ user }) {
       const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
         credentials: 'include'
       });

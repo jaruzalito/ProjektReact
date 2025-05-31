@@ -1,8 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const LoginForm = ({ onLogin }) => {
   const [currentView, setCurrentView] = useState('login');
   const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    checkAuthStatus();
+  }, []);
+
+  const checkAuthStatus = async () => {
+    try {
+      const response = await fetch('http://localhost:3001/verify-token', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUser(data.user);
+        if (onLogin) onLogin(data.user);
+      }
+    } catch (error) {
+      console.log('No valid session found');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const LoginFormComponent = () => {
     const [formData, setFormData] = useState({
@@ -316,25 +343,49 @@ const LoginForm = ({ onLogin }) => {
     );
   };
 
-  const Dashboard = () => (
-    <div className="form-container">
-      <h2>Panel użytkownika</h2>
-      <div className="user-info">
-        <p>Witaj, <strong>{user?.login || user?.username}</strong>!</p>
-        <p>Jesteś pomyślnie zalogowany.</p>
+  const Dashboard = () => {
+    const handleLogout = async () => {
+      try {
+        await fetch('http://localhost:3001/logout', {
+          method: 'POST',
+          credentials: 'include'
+        });
+      } catch (error) {
+        console.error('Logout error:', error);
+      }
+      
+      setUser(null);
+      setCurrentView('login');
+      if (onLogin) onLogin(null);
+    };
+
+    return (
+      <div className="form-container">
+        <h2>Panel użytkownika</h2>
+        <div className="user-info">
+          <p>Witaj, <strong>{user?.login || user?.username}</strong>!</p>
+          <p>Jesteś pomyślnie zalogowany.</p>
+        </div>
+        <button 
+          onClick={handleLogout}
+          className="submit-btn logout-btn"
+        >
+          Wyloguj się
+        </button>
       </div>
-      <button 
-        onClick={() => {
-          setUser(null);
-          setCurrentView('login');
-          if (onLogin) onLogin(null);
-        }}
-        className="submit-btn logout-btn"
-      >
-        Wyloguj się
-      </button>
-    </div>
-  );
+    );
+  };
+
+  // Pokazuj loader podczas sprawdzania stanu autoryzacji
+  if (isLoading) {
+    return (
+      <div className="form-container">
+        <div style={{ textAlign: 'center', padding: '2rem' }}>
+          <p>Sprawdzanie sesji...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
