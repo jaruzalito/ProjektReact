@@ -1,10 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import './App.css';
 
 function App() {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        const response = await fetch('http://localhost:3001/verify-token', {
+          method: 'GET',
+          credentials: 'include'
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setUser(data.user);
+        }
+      } catch (error) {
+        console.error('Błąd podczas sprawdzania statusu logowania:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuthStatus();
+  }, []);
 
   const handleLogin = (userData) => {
     setUser(userData);
@@ -12,7 +35,24 @@ function App() {
 
   const handleLogout = () => {
     setUser(null);
+    
+    fetch('http://localhost:3001/logout', {
+      method: 'POST',
+      credentials: 'include'
+    }).catch(err => console.error('Błąd podczas wylogowywania:', err));
   };
+
+  // Pokaż loading podczas sprawdzania statusu logowania
+  if (loading) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner">
+          <i className="fas fa-spinner fa-spin"></i>
+          <p>Ładowanie...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <BrowserRouter>
@@ -42,7 +82,7 @@ function App() {
                 </Link>
               ) : (
                 <div className="user-nav">
-                  <span className="user-greeting">Witaj, {user.login}!</span>
+                  <span className="user-greeting">Witaj, {user.login || user.username}!</span>
                   <button onClick={handleLogout} className="logout-btn-nav">
                     <i className="fas fa-sign-out-alt"></i>
                     <span>Wyloguj</span>
@@ -130,39 +170,31 @@ function ProfileCard({ username, trustLevel, warning, user }) {
   );
 }
 
-
-
 function ProfileSearchPage({ user }) {
   const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(false);
   const [profileData, setProfileData] = useState(null);
   const [error, setError] = useState('');
 
-
   const API_BASE_URL = process.env.NODE_ENV === 'production' 
     ? 'http://localhost:3001' 
     : 'http://localhost:3001';
 
-
   const calculateTrustLevel = (profile) => {
     let trust = 50; 
     
-
     if (profile.followers > 1000) trust += 15;
     if (profile.followers > 10000) trust += 10;
     if (profile.followers > 100000) trust += 5;
     
-
     const ratio = profile.following / Math.max(profile.followers, 1);
     if (ratio < 0.5) trust += 10; 
     if (ratio > 2) trust -= 15; 
     if (ratio > 5) trust -= 20; 
     
-
     if (profile.posts > 50) trust += 10;
     if (profile.posts < 10) trust -= 15;
     
-
     if (profile.fullName && profile.fullName !== 'Nieznane') trust += 5;
     if (profile.bio && profile.bio !== 'Brak opisu' && profile.bio.length > 10) trust += 10;
     
@@ -191,7 +223,7 @@ function ProfileSearchPage({ user }) {
       const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
         credentials: 'include'
       });
