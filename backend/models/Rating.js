@@ -7,7 +7,6 @@ const ratingSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
-// Unikalność oceny 1 użytkownika dla 1 profilu
 ratingSchema.index({ user: 1, profile: 1 }, { unique: true });
 
 module.exports = mongoose.model('Rating', ratingSchema);

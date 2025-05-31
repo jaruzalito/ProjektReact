@@ -1,16 +1,13 @@
 const Rating = require('../models/Rating');
 const InstagramProfile = require('../models/InstagramProfile');
 
-async function recalculateAvgRating(profileId) {
+module.exports = async function recalculateAvgRating(profileId) {
   const ratings = await Rating.find({ profile: profileId });
 
   if (ratings.length === 0) {
-    await InstagramProfile.findByIdAndUpdate(profileId, { avgRating: null });
-    return;
+    return InstagramProfile.findByIdAndUpdate(profileId, { avgRating: null });
   }
 
-  const avg = ratings.reduce((sum, r) => sum + r.value, 0) / ratings.length;
-  await InstagramProfile.findByIdAndUpdate(profileId, { avgRating: avg.toFixed(2) });
-}
-
-module.exports = recalculateAvgRating;
+  const avg = ratings.reduce((acc, r) => acc + r.value, 0) / ratings.length;
+  return InstagramProfile.findByIdAndUpdate(profileId, { avgRating: avg });
+};
