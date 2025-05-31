@@ -2,17 +2,19 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
 require('dotenv').config();
-
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   next();
 });
 
-
+app.use(cookieParser());
 
 const allowedOrigins = [
   'http://localhost:5173',
@@ -37,19 +39,15 @@ app.use(cors({
   optionsSuccessStatus: 200
 }));
 
-
 app.options('*', cors());
-
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
 
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.url} - Origin: ${req.headers.origin}`);
   next();
 });
-
 
 const connectDB = async () => {
   try {
@@ -61,9 +59,7 @@ const connectDB = async () => {
   }
 };
 
-
 connectDB();
-
 
 const userSchema = new mongoose.Schema({
   login: {
@@ -82,12 +78,25 @@ const userSchema = new mongoose.Schema({
   timestamps: true
 });
 
-
 userSchema.index({ login: 1 });
-
 
 const User = mongoose.model('User', userSchema);
 
+const verifyToken = (req, res, next) => {
+  const token = req.cookies.authToken;
+  
+  if (!token) {
+    return res.status(401).json({ error: 'No token provided' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+    req.userId = decoded.userId;
+    next();
+  } catch (error) {
+    return res.status(401).json({ error: 'Invalid token' });
+  }
+};
 
 try {
   const instagramRouter = require("./routes/instagram");
@@ -95,7 +104,6 @@ try {
 } catch (error) {
   console.error('Error loading Instagram routes:', error);
 }
-
 
 app.post('/register', async (req, res) => {
   try {
@@ -111,14 +119,15 @@ app.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'Password must be at least 6 characters long' });
     }
 
-
     const existingUser = await User.findOne({ 
-    login: { $regex: new RegExp(`^${req.body.login}$`, 'i') } 
+      login: { $regex: new RegExp(`^${req.body.login}$`, 'i') } 
     });
 
+    if (existingUser) {
+      return res.status(409).json({ error: 'Username already taken' });
+    }
 
     const hashedPassword = await bcrypt.hash(password, 12);
-
 
     const newUser = new User({
       login: login.trim().toLowerCase(),
@@ -137,7 +146,6 @@ app.post('/register', async (req, res) => {
   } catch (error) {
     console.error('Registration error:', error);
     
-
     if (error.code === 11000) {
       return res.status(409).json({ error: 'Username already taken' });
     }
@@ -145,7 +153,6 @@ app.post('/register', async (req, res) => {
     return res.status(500).json({ error: 'Server error' });
   }
 });
-
 
 app.post('/login', async (req, res) => {
   try {
@@ -157,17 +164,28 @@ app.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Login and password are required' });
     }
 
-
     const user = await User.findOne({ login: login.trim().toLowerCase() });
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
+
+    const token = jwt.sign(
+      { userId: user._id, login: user.login },
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: '7d' }
+    );
+
+    res.cookie('authToken', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    });
 
     console.log('User logged in successfully:', user.login);
 
@@ -182,8 +200,28 @@ app.post('/login', async (req, res) => {
   }
 });
 
+app.get('/verify-token', verifyToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId, 'login');
+    if (!user) {
+      return res.status(401).json({ error: 'User not found' });
+    }
 
-app.get('/users', async (req, res) => {
+    return res.status(200).json({
+      user: { id: user._id, login: user.login }
+    });
+  } catch (error) {
+    console.error('Token verification error:', error);
+    return res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.post('/logout', (req, res) => {
+  res.clearCookie('authToken');
+  return res.status(200).json({ message: 'Logout successful' });
+});
+
+app.get('/users', verifyToken, async (req, res) => {
   try {
     const users = await User.find({}, 'login createdAt').sort({ createdAt: -1 });
     return res.status(200).json({ users });
@@ -193,7 +231,6 @@ app.get('/users', async (req, res) => {
   }
 });
 
-
 app.get('/health', (req, res) => {
   const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
   res.status(200).json({ 
@@ -201,22 +238,20 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
     database: dbStatus,
     mongo_uri: process.env.MONGO_URI ? 'configured' : 'not configured',
+    jwt_secret: process.env.JWT_SECRET ? 'configured' : 'not configured',
     port: PORT
   });
 });
-
 
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
   res.status(500).json({ error: 'Internal server error' });
 });
 
-
 app.use((req, res) => {
   console.log(`404 - Route not found: ${req.method} ${req.url}`);
   res.status(404).json({ error: 'Endpoint not found' });
 });
-
 
 process.on('SIGINT', async () => {
   console.log('\nShutting down gracefully...');
@@ -230,14 +265,15 @@ process.on('SIGINT', async () => {
   }
 });
 
-
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://localhost:${PORT}`);
   console.log('Allowed CORS origins:', allowedOrigins);
   console.log('Available endpoints:');
   console.log('POST /register - User registration');
   console.log('POST /login - User login');
-  console.log('GET /users - Get all users');
+  console.log('POST /logout - User logout');
+  console.log('GET /verify-token - Verify authentication');
+  console.log('GET /users - Get all users (protected)');
   console.log('GET /health - Health check');
   console.log('GET /api/instagram/:username - Instagram profile data');
 });
