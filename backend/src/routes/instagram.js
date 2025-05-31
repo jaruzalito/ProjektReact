@@ -3,99 +3,109 @@ const router = express.Router();
 const puppeteer = require('puppeteer');
 const InstagramProfile = require('../../models/InstagramProfile');
 
-function parseInstagramDescription(description) {
+function parseNumberWithSuffix(str) {
+  if (!str) return 0;
+
+  const cleaned = str.replace(/[,\s]/g, '').toUpperCase();
+  const match = cleaned.match(/^(\d+(?:\.\d+)?)([KMBTQ]?)$/);
+  
+  if (!match) return parseInt(cleaned, 10) || 0;
+
+  const number = parseFloat(match[1]);
+  const suffix = match[2];
+
+  const multipliers = {
+    'K': 1000,
+    'M': 1000000,
+    'B': 1000000000,
+    'T': 1000000000000,
+    'Q': 1000000000000000
+  };
+
+  return Math.floor(number * (multipliers[suffix] || 1));
+}
+
+function parseInstagramDescription(description, requestedUsername, pageTitle) {
   if (!description) return null;
 
-  // Funkcja pomocnicza do konwersji skróconych liczb (1M, 1K, etc.) na liczby całkowite
-  function parseNumberWithSuffix(str) {
-    if (!str) return 0;
-
-    // Usuń przecinki i spacje
-    const cleaned = str.replace(/[,\s]/g, '').toUpperCase();
-
-    // Sprawdź czy ma sufiks
-    const match = cleaned.match(/^(\d+(?:\.\d+)?)([KMBTQ]?)$/);
-    if (!match) return parseInt(cleaned, 10) || 0;
-
-    const number = parseFloat(match[1]);
-    const suffix = match[2];
-
-    const multipliers = {
-      'K': 1000,
-      'M': 1000000,
-      'B': 1000000000,
-      'T': 1000000000000,
-      'Q': 1000000000000000
-    };
-
-    return Math.floor(number * (multipliers[suffix] || 1));
-  }
-
-  // Dodaj debug log
   console.log('Parsowanie opisu:', description);
+  console.log('Żądany username:', requestedUsername);
+  const fullRegex = /(\d+(?:[.,]\d+)?[KMBTQ]?|[\d,]+)\s+Followers?,\s*(\d+(?:[.,]\d+)?[KMBTQ]?|[\d,]+)\s+Following,\s*(\d+(?:[.,]\d+)?[KMBTQ]?|[\d,]+)\s+Posts?\s*-\s*(.*?)\s*\(@([\w.]+)\)\s*on\s*Instagram:\s*"([\s\S]*?)"$/i;
+  
+  const fullMatch = description.match(fullRegex);
+  console.log('Pełny match result:', fullMatch);
 
-  // Główne wyrażenie regularne - obsługuje różne formaty liczb
-  // Poprawione wyrażenie regularne z lepszym dopasowaniem dla wieloliniowego tekstu
-  const regex = /(\d+(?:[.,]\d+)?[KMBTQ]?|[\d,]+)\s+Followers?,\s*(\d+(?:[.,]\d+)?[KMBTQ]?|[\d,]+)\s+Following,\s*(\d+(?:[.,]\d+)?[KMBTQ]?|[\d,]+)\s+Posts?\s*-\s*(.*?)\s*\(@([\w.]+)\)\s*on\s*Instagram:\s*"([\s\S]*?)"$/i;
+  if (fullMatch) {
+    const followers = parseNumberWithSuffix(fullMatch[1]);
+    const following = parseNumberWithSuffix(fullMatch[2]);
+    const posts = parseNumberWithSuffix(fullMatch[3]);
+    const fullName = fullMatch[4] ? fullMatch[4].trim() : null;
+    const username = fullMatch[5] ? fullMatch[5].trim() : requestedUsername;
+    const bio = fullMatch[6] ? fullMatch[6].trim().replace(/\s+/g, ' ') : '';
 
-  const match = description.match(regex);
-  console.log('Match result:', match);
-
-  if (match) {
-    const followers = parseNumberWithSuffix(match[1]);
-    const following = parseNumberWithSuffix(match[2]);
-    const posts = parseNumberWithSuffix(match[3]);
-    const fullName = match[4] ? match[4].trim() : 'Nieznane';
-    const username = match[5].trim();
-    const bio = match[6] ? match[6].trim().replace(/\s+/g, ' ') : 'Brak opisu';
-
-    console.log('Parsed data:', { followers, following, posts, fullName, username, bio });
+    console.log('Parsed data (full):', { followers, following, posts, fullName, username, bio });
 
     return {
       followers,
       following,
       posts,
-      fullName,
+      fullName: fullName || username,
       username,
-      bio
+      bio: bio || 'Brak opisu'
     };
   }
 
-  // Fallback - prostsze wyrażenie regularne
-  const simpleRegex = /(\d+(?:[.,]\d+)?[KMBTQ]?|[\d,]+)\s+Followers?,\s*(\d+(?:[.,]\d+)?[KMBTQ]?|[\d,]+)\s+Following,\s*(\d+(?:[.,]\d+)?[KMBTQ]?|[\d,]+)\s+Posts?/i;
-  const simpleMatch = description.match(simpleRegex);
-  console.log('Simple match result:', simpleMatch);
+  const basicRegex = /(\d+(?:[.,]\d+)?[KMBTQ]?|[\d,]+)\s+Followers?,\s*(\d+(?:[.,]\d+)?[KMBTQ]?|[\d,]+)\s+Following,\s*(\d+(?:[.,]\d+)?[KMBTQ]?|[\d,]+)\s+Posts?/i;
+  const basicMatch = description.match(basicRegex);
+  console.log('Basic match result:', basicMatch);
 
-  if (simpleMatch) {
+  if (basicMatch) {
     return {
-      followers: parseNumberWithSuffix(simpleMatch[1]),
-      following: parseNumberWithSuffix(simpleMatch[2]),
-      posts: parseNumberWithSuffix(simpleMatch[3]),
-      fullName: 'Nieznane',
-      username: 'Nieznane',
+      followers: parseNumberWithSuffix(basicMatch[1]),
+      following: parseNumberWithSuffix(basicMatch[2]),
+      posts: parseNumberWithSuffix(basicMatch[3]),
+      fullName: requestedUsername, 
+      username: requestedUsername,
       bio: 'Brak opisu'
     };
   }
-
-  // Jeśli żaden regex nie zadziałał, spróbuj wyciągnąć dane manualnie
-  console.log('Trying manual extraction...');
-
-  // Spróbuj znaleźć liczby followers, following, posts
+  console.log('Próba ręcznej ekstrakcji...');
+  
   const followersMatch = description.match(/(\d+(?:[.,]\d+)?[KMBTQ]?|[\d,]+)\s+Followers?/i);
   const followingMatch = description.match(/(\d+(?:[.,]\d+)?[KMBTQ]?|[\d,]+)\s+Following/i);
   const postsMatch = description.match(/(\d+(?:[.,]\d+)?[KMBTQ]?|[\d,]+)\s+Posts?/i);
-  const usernameMatch = description.match(/(?:Posts\s*)?-\s*@([\w.]+)\s+on\s+Instagram/i) || description.match(/@([\w.]+)/); // Fallback to first @ mention
-  const nameMatch = description.match(/Posts?\s*-\s*(.*?)(?:@|on\s+Instagram)/);
-  const bioMatch = description.match(/Instagram:\s*"([\s\S]*?)"$/);
-
+  
   if (followersMatch && followingMatch && postsMatch) {
+    // Próba wyciągnięcia username z opisu
+    const usernameMatch = description.match(/(?:Posts\s*)?-\s*.*?\(@([\w.]+)\)\s*on\s*Instagram/i) || 
+                         description.match(/@([\w.]+)/);
+    const nameMatch = description.match(/Posts?\s*-\s*(.*?)(?:\s*\(@[\w.]+\)|@|on\s+Instagram)/i);
+    const bioMatch = description.match(/Instagram:\s*"([\s\S]*?)"$/i);
+    
+    const extractedUsername = usernameMatch ? usernameMatch[1] : requestedUsername;
+    let extractedFullName = null;
+    
+    if (nameMatch && nameMatch[1].trim() && nameMatch[1].trim() !== '') {
+      extractedFullName = nameMatch[1].trim();
+    } else if (pageTitle) {
+      const titleParts = pageTitle.split('•');
+      if (titleParts.length > 0) {
+        const titleName = titleParts[0].trim();
+        if (titleName && titleName !== extractedUsername && !titleName.includes('Instagram')) {
+          extractedFullName = titleName;
+        }
+      }
+    }
+    
+    const extractedBio = bioMatch ? bioMatch[1].trim().replace(/\s+/g, ' ') : '';
+    
     return {
       followers: parseNumberWithSuffix(followersMatch[1]),
       following: parseNumberWithSuffix(followingMatch[1]),
       posts: parseNumberWithSuffix(postsMatch[1]),
-      fullName: nameMatch ? nameMatch[1].trim() : 'Nieznane',
-      username: usernameMatch ? usernameMatch[1] : 'Nieznane',
-      bio: bioMatch ? bioMatch[1].trim().replace(/\s+/g, ' ') : 'Brak opisu'
+      fullName: extractedFullName || extractedUsername,
+      username: extractedUsername,
+      bio: extractedBio || 'Brak opisu'
     };
   }
 
@@ -106,6 +116,64 @@ async function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+async function launchBrowser() {
+  return await puppeteer.launch({
+    executablePath: '/usr/bin/chromium',
+    headless: true,
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-accelerated-2d-canvas',
+      '--disable-gpu',
+      '--window-size=1920x1080',
+      '--disable-blink-features=AutomationControlled'
+    ]
+  });
+}
+
+async function setupPage(browser) {
+  const page = await browser.newPage();
+  
+  await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+  
+  await page.evaluateOnNewDocument(() => {
+    Object.defineProperty(navigator, 'webdriver', {
+      get: () => undefined,
+    });
+  });
+  
+  await page.setViewport({ width: 1920, height: 1080 });
+  
+  return page;
+}
+
+async function checkProfileAvailability(page) {
+  const pageContent = await page.content();
+  const currentUrl = page.url();
+  
+  if (currentUrl.includes('/accounts/login/') || currentUrl.includes('/challenge/')) {
+    throw new Error('Instagram wymaga logowania lub wykrył bota');
+  }
+
+  if (pageContent.includes('Sorry, this page isn\'t available') ||
+      pageContent.includes('The link you followed may be broken')) {
+    return { exists: false };
+  }
+  
+  return { exists: true };
+}
+
+async function extractProfileData(page) {
+  return await page.evaluate(() => {
+    const meta = document.querySelector('meta[name="description"]');
+    return {
+      description: meta ? meta.content : null,
+      title: document.title
+    };
+  });
+}
+
 router.get('/:username', async (req, res) => {
   const { username } = req.params;
   let browser = null;
@@ -113,37 +181,15 @@ router.get('/:username', async (req, res) => {
   try {
     console.log(`Pobieranie profilu Instagram dla: ${username}`);
 
-    browser = await puppeteer.launch({
-      executablePath: '/usr/bin/chromium',
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--disable-gpu',
-        '--window-size=1920x1080',
-        '--disable-blink-features=AutomationControlled'
-      ]
-    });
-
-    const page = await browser.newPage();
-
-    await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
-
-    await page.evaluateOnNewDocument(() => {
-      Object.defineProperty(navigator, 'webdriver', {
-        get: () => undefined,
-      });
-    });
-
-    await page.setViewport({ width: 1920, height: 1080 });
+    browser = await launchBrowser();
+    const page = await setupPage(browser);
 
     await delay(Math.random() * 2000 + 1000);
 
-    console.log(`Przechodzenie do URL: https://www.instagram.com/${username}/`);
+    const instagramUrl = `https://www.instagram.com/${username}/`;
+    console.log(`Przechodzenie do URL: ${instagramUrl}`);
 
-    const response = await page.goto(`https://www.instagram.com/${username}/`, {
+    const response = await page.goto(instagramUrl, {
       waitUntil: 'networkidle2',
       timeout: 30000
     });
@@ -152,32 +198,19 @@ router.get('/:username', async (req, res) => {
       throw new Error(`HTTP ${response.status()}: ${response.statusText()}`);
     }
 
-    const currentUrl = page.url();
-    console.log(`Obecny URL: ${currentUrl}`);
-
-    if (currentUrl.includes('/accounts/login/') || currentUrl.includes('/challenge/')) {
-      throw new Error('Instagram wymaga logowania lub wykrył bota');
-    }
-
-    await delay(2000);
-
-    const pageContent = await page.content();
-    if (pageContent.includes('Sorry, this page isn\'t available') ||
-        pageContent.includes('The link you followed may be broken')) {
+    console.log(`Obecny URL: ${page.url()}`);
+    
+    const availability = await checkProfileAvailability(page);
+    if (!availability.exists) {
       return res.status(404).json({
         error: 'Profil nie istnieje lub jest niedostępny',
         username: username
       });
     }
 
-    const profile = await page.evaluate(() => {
-      const meta = document.querySelector('meta[name="description"]');
-      return {
-        description: meta ? meta.content : null,
-        title: document.title
-      };
-    });
+    await delay(2000);
 
+    const profile = await extractProfileData(page);
     console.log('Znaleziony opis meta:', profile.description);
     console.log('Tytuł strony:', profile.title);
 
@@ -191,8 +224,7 @@ router.get('/:username', async (req, res) => {
         pageTitle: profile.title
       });
     }
-
-    const parsedData = parseInstagramDescription(profile.description);
+    const parsedData = parseInstagramDescription(profile.description, username, profile.title);
 
     if (!parsedData) {
       console.log('Nie udało się sparsować opisu:', profile.description);
@@ -203,7 +235,7 @@ router.get('/:username', async (req, res) => {
       });
     }
 
-    let result = {
+    const result = {
       username: parsedData.username,
       fullName: parsedData.fullName,
       bio: parsedData.bio,
@@ -214,9 +246,9 @@ router.get('/:username', async (req, res) => {
     };
 
     await InstagramProfile.findOneAndUpdate(
-        { username: result.username },
-        { $set: result },
-        { upsert: true, new: true }
+      { username: result.username },
+      { $set: result },
+      { upsert: true, new: true }
     );
 
     res.json({ success: true, ...result });
