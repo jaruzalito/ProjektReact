@@ -4,16 +4,14 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
-
 const app = express();
 const PORT = process.env.PORT || 3001;
+
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   next();
 });
-
-
-
+//CORS
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
@@ -37,19 +35,15 @@ app.use(cors({
   optionsSuccessStatus: 200
 }));
 
-
 app.options('*', cors());
-
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
 
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.url} - Origin: ${req.headers.origin}`);
   next();
 });
-
 
 const connectDB = async () => {
   try {
@@ -61,9 +55,7 @@ const connectDB = async () => {
   }
 };
 
-
 connectDB();
-
 
 const userSchema = new mongoose.Schema({
   login: {
@@ -82,21 +74,31 @@ const userSchema = new mongoose.Schema({
   timestamps: true
 });
 
-
-userSchema.index({ login: 1 });
-
-
 const User = mongoose.model('User', userSchema);
-
 
 try {
   const instagramRouter = require("./routes/instagram");
   app.use("/api/instagram", instagramRouter);
+  console.log('Instagram routes loaded successfully');
 } catch (error) {
   console.error('Error loading Instagram routes:', error);
 }
 
+try {
+  const commentRoutes = require('./routes/comments');
+  app.use('/api/comments', commentRoutes);
+  console.log('Comment routes loaded successfully');
+} catch (error) {
+  console.error('Error loading comment routes:', error);
+}
 
+try {
+  const ratingRoutes = require('./routes/ratings');
+  app.use('/api/ratings', ratingRoutes);
+  console.log('Rating routes loaded successfully');
+} catch (error) {
+  console.error('Error loading rating routes:', error);
+}
 app.post('/register', async (req, res) => {
   try {
     console.log('Registration attempt:', { login: req.body.login });
@@ -111,14 +113,15 @@ app.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'Password must be at least 6 characters long' });
     }
 
-
     const existingUser = await User.findOne({ 
-    login: { $regex: new RegExp(`^${req.body.login}$`, 'i') } 
+      login: { $regex: new RegExp(`^${req.body.login}$`, 'i') } 
     });
 
+    if (existingUser) {
+      return res.status(409).json({ error: 'Username already taken' });
+    }
 
     const hashedPassword = await bcrypt.hash(password, 12);
-
 
     const newUser = new User({
       login: login.trim().toLowerCase(),
@@ -137,7 +140,6 @@ app.post('/register', async (req, res) => {
   } catch (error) {
     console.error('Registration error:', error);
     
-
     if (error.code === 11000) {
       return res.status(409).json({ error: 'Username already taken' });
     }
@@ -145,7 +147,6 @@ app.post('/register', async (req, res) => {
     return res.status(500).json({ error: 'Server error' });
   }
 });
-
 
 app.post('/login', async (req, res) => {
   try {
@@ -157,12 +158,10 @@ app.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Login and password are required' });
     }
 
-
     const user = await User.findOne({ login: login.trim().toLowerCase() });
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
-
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
@@ -182,7 +181,6 @@ app.post('/login', async (req, res) => {
   }
 });
 
-
 app.get('/users', async (req, res) => {
   try {
     const users = await User.find({}, 'login createdAt').sort({ createdAt: -1 });
@@ -192,7 +190,6 @@ app.get('/users', async (req, res) => {
     return res.status(500).json({ error: 'Server error' });
   }
 });
-
 
 app.get('/health', (req, res) => {
   const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
@@ -204,19 +201,15 @@ app.get('/health', (req, res) => {
     port: PORT
   });
 });
-
-
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
   res.status(500).json({ error: 'Internal server error' });
 });
 
-
 app.use((req, res) => {
   console.log(`404 - Route not found: ${req.method} ${req.url}`);
   res.status(404).json({ error: 'Endpoint not found' });
 });
-
 
 process.on('SIGINT', async () => {
   console.log('\nShutting down gracefully...');
@@ -230,7 +223,6 @@ process.on('SIGINT', async () => {
   }
 });
 
-
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://localhost:${PORT}`);
   console.log('Allowed CORS origins:', allowedOrigins);
@@ -240,4 +232,7 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log('GET /users - Get all users');
   console.log('GET /health - Health check');
   console.log('GET /api/instagram/:username - Instagram profile data');
+  console.log('GET /api/comments/:username - Get comments for user');
+  console.log('POST /api/comments - Add new comment');
+  console.log('POST /api/ratings - Add/update rating');
 });

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Link, useNavigate, useParams } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import './App.css';
 
@@ -59,6 +59,7 @@ function App() {
             <Route path="/search" element={<ProfileSearchPage user={user} />} />
             <Route path="/faq" element={<FAQPage />} />
             <Route path="/login" element={<LoginPage onLogin={handleLogin} user={user} />} />
+            <Route path="/add-review/:username" element={<AddReviewPage user={user} />} />
           </Routes>
         </main>
 
@@ -130,43 +131,57 @@ function ProfileCard({ username, trustLevel, warning, user }) {
   );
 }
 
-
-
 function ProfileSearchPage({ user }) {
   const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(false);
   const [profileData, setProfileData] = useState(null);
   const [error, setError] = useState('');
-
+  const [comments, setComments] = useState([]);
+  const [loadingComments, setLoadingComments] = useState(false);
 
   const API_BASE_URL = process.env.NODE_ENV === 'production' 
     ? 'http://localhost:3001' 
     : 'http://localhost:3001';
 
-
   const calculateTrustLevel = (profile) => {
     let trust = 50; 
     
-
     if (profile.followers > 1000) trust += 15;
     if (profile.followers > 10000) trust += 10;
     if (profile.followers > 100000) trust += 5;
     
-
     const ratio = profile.following / Math.max(profile.followers, 1);
     if (ratio < 0.5) trust += 10; 
     if (ratio > 2) trust -= 15; 
     if (ratio > 5) trust -= 20; 
     
-
     if (profile.posts > 50) trust += 10;
     if (profile.posts < 10) trust -= 15;
     
-
     if (profile.fullName && profile.fullName !== 'Nieznane') trust += 5;
     if (profile.bio && profile.bio !== 'Brak opisu' && profile.bio.length > 10) trust += 10;
     
     return Math.max(0, Math.min(100, trust));
+  };
+
+  const loadComments = async (username) => {
+    if (!user) return;
+    
+    setLoadingComments(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/comments/${username}`, {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setComments(data.comments || []);
+      }
+    } catch (err) {
+      console.error('Błąd podczas ładowania komentarzy:', err);
+    } finally {
+      setLoadingComments(false);
+    }
   };
 
   const handleSearch = async () => {
@@ -183,6 +198,7 @@ function ProfileSearchPage({ user }) {
     setLoading(true);
     setError('');
     setProfileData(null);
+    setComments([]);
     
     try {
       const apiUrl = `${API_BASE_URL}/api/instagram/${username.trim()}`;
@@ -220,6 +236,9 @@ function ProfileSearchPage({ user }) {
           trustLevel,
           warnings: generateWarnings(data, trustLevel)
         });
+        
+        // Załaduj komentarze
+        await loadComments(username.trim());
       } else {
         throw new Error(data.error || 'Nie udało się pobrać danych profilu');
       }
@@ -299,7 +318,7 @@ function ProfileSearchPage({ user }) {
                 <i className="fas fa-user-circle"></i>
               </div>
               <div className="profile-info">
-                <h2>@{profileData.username}</h2>
+                <h2>@{profileData.username} {profileData.avgRating}</h2>
                 <p className="full-name">{profileData.fullName}</p>
                 <div className={`trust-score ${profileData.trustLevel > 70 ? 'high' : profileData.trustLevel > 40 ? 'medium' : 'low'}`}>
                   <span className="trust-label">Poziom zaufania:</span>
@@ -308,6 +327,17 @@ function ProfileSearchPage({ user }) {
                     {profileData.trustLevel > 70 ? '✅' : profileData.trustLevel > 40 ? '⚠️' : '❌'}
                   </span>
                 </div>
+                {profileData.avgRating && (
+                  <div className="avg-rating">
+                    <span className="rating-label">Średnia ocena:</span>
+                    <div className="stars">
+                      {[...Array(10)].map((_, i) => (
+                        <i key={i} className={`fas fa-star ${i < Math.round(profileData.avgRating) ? 'filled' : ''}`}></i>
+                      ))}
+                    </div>
+                    <span className="rating-value">({profileData.avgRating.toFixed(1)}/10)</span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -315,12 +345,12 @@ function ProfileSearchPage({ user }) {
               <div className="stat">
                 <i className="fas fa-users"></i>
                 <span className="stat-number">{profileData.followers.toLocaleString()}</span>
-                <span className="stat-label">Obserwujący</span>
+                <span className="stat-label"> Obserwujących</span>
               </div>
               <div className="stat">
                 <i className="fas fa-user-plus"></i>
                 <span className="stat-number">{profileData.following.toLocaleString()}</span>
-                <span className="stat-label">Obserwowani</span>
+                <span className="stat-label"> Obserwowanych</span>
               </div>
               <div className="stat">
                 <i className="fas fa-camera"></i>
@@ -348,15 +378,231 @@ function ProfileSearchPage({ user }) {
             )}
 
             <div className="profile-actions">
-              <button className="btn-primary">
+              <Link to={`/add-review/${profileData.username}`} className="btn-primary">
                 <i className="fas fa-thumbs-up"></i> Dodaj opinię
-              </button>
+              </Link>
               <button className="btn-secondary">
                 <i className="fas fa-flag"></i> Zgłoś profil
               </button>
             </div>
+
+            {/* Sekcja komentarzy */}
+            <div className="comments-section">
+              <h3>Opinie użytkowników</h3>
+              {loadingComments ? (
+                <div className="loading-comments">
+                  <i className="fas fa-spinner fa-spin"></i> Ładowanie opinii...
+                </div>
+              ) : comments.length > 0 ? (
+                <div className="comments-list">
+                  {comments.map((comment, index) => (
+                    <CommentCard key={index} comment={comment}/>
+                  ))}
+                </div>
+              ) : (
+                <div className="no-comments">
+                  <p>Brak opinii dla tego profilu. <Link to={`/add-review/${profileData.username}`}>Dodaj pierwszą!</Link></p>
+                </div>
+              )}
+            </div>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function CommentCard({ comment }) {
+  const formatDate = (date) => {
+    return new Date(date).toLocaleDateString('pl-PL', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  return (
+    <div className="comment-card">
+      <div className="comment-header">
+        <div className="comment-author">
+          <i className="fas fa-user-circle"></i>
+          <span className="author-name">{comment.user?.login || 'Anonimowy'}</span>
+        </div>
+        <div className="comment-meta">
+          {comment.rating && (
+            <div className="comment-rating">
+              {[...Array(10)].map((_, i) => (
+                <i key={i} className={`fas fa-star ${i < comment.rating ? 'filled' : ''}`}></i>
+              ))}
+              <span className="rating-text">({comment.rating}/10)</span>
+            </div>
+          )}
+          <span className="comment-date">{formatDate(comment.createdAt)}</span>
+        </div>
+      </div>
+      <div className="comment-content">
+        <p>{comment.content}</p>
+      </div>
+    </div>
+  );
+}
+
+function AddReviewPage({ user }) {
+  const { username } = useParams();
+  const navigate = useNavigate();
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [comment, setComment] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const API_BASE_URL = process.env.NODE_ENV === 'production' 
+    ? 'http://localhost:3001' 
+    : 'http://localhost:3001';
+
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+    }
+  }, [user, navigate]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!rating) {
+      setError('Wybierz ocenę od 1 do 10 gwiazdek');
+      return;
+    }
+
+    if (!comment.trim()) {
+      setError('Napisz komentarz');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const commentRes = await fetch(`${API_BASE_URL}/api/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ username, comment, userId: user.id })
+      });
+
+      const commentData = await commentRes.json();
+      if (!commentRes.ok) {
+        throw new Error(commentData.error || 'Błąd podczas dodawania komentarza');
+      }
+      const ratingRes = await fetch(`${API_BASE_URL}/api/ratings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ username, rating, userId: user.id })
+      });
+
+      const ratingData = await ratingRes.json();
+      if (!ratingRes.ok) {
+        throw new Error(ratingData.error || 'Błąd podczas zapisywania oceny');
+      }
+
+      alert('Opinia została dodana pomyślnie!');
+      navigate(`/search`);
+    } catch (err) {
+      console.error('Błąd:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!user) {
+    return null;
+  }
+
+  return (
+    <div className="add-review-page">
+      <div className="review-container">
+        <div className="review-header">
+          <h1>Dodaj opinię</h1>
+          <p>Oceń profil <strong>@{username}</strong></p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="review-form">
+          <div className="rating-section">
+            <label>Oceń profil (1-10 gwiazdek):</label>
+            <div className="star-rating">
+              {[...Array(10)].map((_, index) => {
+                const starValue = index + 1;
+                return (
+                  <button
+                    key={index}
+                    type="button"
+                    className={`star ${(hoverRating || rating) >= starValue ? 'active' : ''}`}
+                    onClick={() => setRating(starValue)}
+                    onMouseEnter={() => setHoverRating(starValue)}
+                    onMouseLeave={() => setHoverRating(0)}
+                  >
+                    <i className="fas fa-star"></i>
+                  </button>
+                );
+              })}
+            </div>
+            {rating > 0 && (
+              <p className="rating-text">Wybrana ocena: {rating}/10 gwiazdek</p>
+            )}
+          </div>
+
+          <div className="comment-section">
+            <label htmlFor="comment">Twój komentarz:</label>
+            <textarea
+              id="comment"
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="Opisz swoje doświadczenie z tym profilem..."
+              rows="5"
+              maxLength="500"
+            />
+            <div className="char-count">
+              {comment.length}/500 znaków
+            </div>
+          </div>
+
+          {error && (
+            <div className="error-message">
+              <i className="fas fa-exclamation-triangle"></i>
+              <p>{error}</p>
+            </div>
+          )}
+
+          <div className="form-actions">
+            <button
+              type="button"
+              onClick={() => navigate('/search')}
+              className="btn-secondary"
+              disabled={loading}
+            >
+              Anuluj
+            </button>
+            <button
+              type="submit"
+              className="btn-primary"
+              disabled={loading || !rating || !comment.trim()}
+            >
+              {loading ? (
+                <>
+                  <i className="fas fa-spinner fa-spin"></i> Dodawanie...
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-thumbs-up"></i> Dodaj opinię
+                </>
+              )}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
