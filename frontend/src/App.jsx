@@ -42,7 +42,6 @@ function App() {
     }).catch(err => console.error('Błąd podczas wylogowywania:', err));
   };
 
-  // Pokaż loading podczas sprawdzania statusu logowania
   if (loading) {
     return (
       <div className="loading-container">
@@ -277,7 +276,6 @@ function ProfileSearchPage({ user }) {
           warnings: generateWarnings(data, trustLevel)
         });
         
-        // Załaduj komentarze
         await loadComments(username.trim());
       } else {
         throw new Error(data.error || 'Nie udało się pobrać danych profilu');
@@ -350,7 +348,6 @@ function ProfileSearchPage({ user }) {
             <p>{error}</p>
           </div>
         )}
-
         {profileData && (
           <div className="profile-result">
             <div className="profile-header">
@@ -358,8 +355,19 @@ function ProfileSearchPage({ user }) {
                 <i className="fas fa-user-circle"></i>
               </div>
               <div className="profile-info">
-                <h2>@{profileData.username} {profileData.avgRating}</h2>
-                <p className="full-name">{profileData.fullName}</p>
+                <div className="profile-name-rating">
+                  <div className="profile-name-section">
+                    <h2>@{profileData.username}</h2>
+                    <p className="full-name">{profileData.fullName}</p>
+                  </div>
+                  {profileData.avgRating && (
+                    <div className="avg-rating-display">
+                      <i className="fas fa-star rating-star"></i>
+                      <span className="avg-rating-value">{profileData.avgRating.toFixed(1)}</span>
+                      <span className="rating-scale">/10</span>
+                    </div>
+                  )}
+                </div>
                 <div className={`trust-score ${profileData.trustLevel > 70 ? 'high' : profileData.trustLevel > 40 ? 'medium' : 'low'}`}>
                   <span className="trust-label">Poziom zaufania:</span>
                   <span className="trust-value">{profileData.trustLevel}%</span>
@@ -367,20 +375,8 @@ function ProfileSearchPage({ user }) {
                     {profileData.trustLevel > 70 ? '✅' : profileData.trustLevel > 40 ? '⚠️' : '❌'}
                   </span>
                 </div>
-                {profileData.avgRating && (
-                  <div className="avg-rating">
-                    <span className="rating-label">Średnia ocena:</span>
-                    <div className="stars">
-                      {[...Array(10)].map((_, i) => (
-                        <i key={i} className={`fas fa-star ${i < Math.round(profileData.avgRating) ? 'filled' : ''}`}></i>
-                      ))}
-                    </div>
-                    <span className="rating-value">({profileData.avgRating.toFixed(1)}/10)</span>
-                  </div>
-                )}
               </div>
             </div>
-
             <div className="profile-stats">
               <div className="stat">
                 <i className="fas fa-users"></i>
@@ -426,7 +422,6 @@ function ProfileSearchPage({ user }) {
               </button>
             </div>
 
-            {/* Sekcja komentarzy */}
             <div className="comments-section">
               <h3>Opinie użytkowników</h3>
               {loadingComments ? (
@@ -473,10 +468,8 @@ function CommentCard({ comment }) {
         <div className="comment-meta">
           {comment.rating && (
             <div className="comment-rating">
-              {[...Array(10)].map((_, i) => (
-                <i key={i} className={`fas fa-star ${i < comment.rating ? 'filled' : ''}`}></i>
-              ))}
-              <span className="rating-text">({comment.rating}/10)</span>
+              <i className="fas fa-star rating-star-small"></i>
+              <span className="rating-text">{comment.rating}/10</span>
             </div>
           )}
           <span className="comment-date">{formatDate(comment.createdAt)}</span>
@@ -497,6 +490,8 @@ function AddReviewPage({ user }) {
   const [comment, setComment] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [existingComment, setExistingComment] = useState(null);
 
   const API_BASE_URL = process.env.NODE_ENV === 'production' 
     ? 'http://localhost:3001' 
@@ -505,8 +500,31 @@ function AddReviewPage({ user }) {
   useEffect(() => {
     if (!user) {
       navigate('/login');
+      return;
     }
-  }, [user, navigate]);
+    
+    const checkExistingComment = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/comments/check/${username}/${user.id}`, {
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.hasComment) {
+            setExistingComment(data.comment);
+            setComment(data.comment.content);
+            setRating(data.comment.rating);
+            setIsEditing(true);
+          }
+        }
+      } catch (err) {
+        console.error('Błąd sprawdzania komentarza:', err);
+      }
+    };
+
+    checkExistingComment();
+  }, [user, navigate, username, API_BASE_URL]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -525,30 +543,36 @@ function AddReviewPage({ user }) {
     setError('');
 
     try {
-      const commentRes = await fetch(`${API_BASE_URL}/api/comments`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ username, comment, userId: user.id })
-      });
+      if (isEditing) {
+        const response = await fetch(`${API_BASE_URL}/api/comments/${existingComment._id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ comment, rating, userId: user.id })
+        });
 
-      const commentData = await commentRes.json();
-      if (!commentRes.ok) {
-        throw new Error(commentData.error || 'Błąd podczas dodawania komentarza');
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || 'Błąd podczas aktualizacji komentarza');
+        }
+
+        alert('Komentarz został zaktualizowany!');
+      } else {
+        const response = await fetch(`${API_BASE_URL}/api/comments`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ username, comment, rating, userId: user.id })
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || 'Błąd podczas dodawania komentarza');
+        }
+
+        alert('Komentarz został dodany!');
       }
-      const ratingRes = await fetch(`${API_BASE_URL}/api/ratings`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ username, rating, userId: user.id })
-      });
 
-      const ratingData = await ratingRes.json();
-      if (!ratingRes.ok) {
-        throw new Error(ratingData.error || 'Błąd podczas zapisywania oceny');
-      }
-
-      alert('Opinia została dodana pomyślnie!');
       navigate(`/search`);
     } catch (err) {
       console.error('Błąd:', err);
@@ -566,8 +590,11 @@ function AddReviewPage({ user }) {
     <div className="add-review-page">
       <div className="review-container">
         <div className="review-header">
-          <h1>Dodaj opinię</h1>
+          <h1>{isEditing ? 'Edytuj opinię' : 'Dodaj opinię'}</h1>
           <p>Oceń profil <strong>@{username}</strong></p>
+          {isEditing && (
+            <p className="edit-notice">Edytujesz swoją wcześniejszą opinię</p>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="review-form">
@@ -633,11 +660,11 @@ function AddReviewPage({ user }) {
             >
               {loading ? (
                 <>
-                  <i className="fas fa-spinner fa-spin"></i> Dodawanie...
+                  <i className="fas fa-spinner fa-spin"></i> {isEditing ? 'Aktualizowanie...' : 'Dodawanie...'}
                 </>
               ) : (
                 <>
-                  <i className="fas fa-thumbs-up"></i> Dodaj opinię
+                  <i className="fas fa-thumbs-up"></i> {isEditing ? 'Zaktualizuj opinię' : 'Dodaj opinię'}
                 </>
               )}
             </button>

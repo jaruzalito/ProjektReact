@@ -69,7 +69,7 @@ const userSchema = new mongoose.Schema({
     trim: true,
     lowercase: true
   },
-  password: {
+  passwordHash: {
     type: String,
     required: true,
     minlength: 6
@@ -148,7 +148,7 @@ app.post('/register', async (req, res) => {
 
     const newUser = new User({
       login: login.trim().toLowerCase(),
-      password: hashedPassword
+      passwordHash: hashedPassword
     });
 
     await newUser.save();
@@ -186,7 +186,7 @@ app.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
     if (!isPasswordValid) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }

@@ -1,0 +1,62 @@
+[
+  {
+    "profileUsername": "prezydent_pl",
+    "userLogin": "admin",
+    "value": 9
+  },
+  {
+    "profileUsername": "prezydent_pl",
+    "userLogin": "testuser1",
+    "value": 10
+  },
+  {
+    "profileUsername": "prezydent_pl",
+    "userLogin": "reviewer1",
+    "value": 8
+  },
+  {
+    "profileUsername": "champagnepapi",
+    "userLogin": "testuser2",
+    "value": 9
+  },
+  {
+    "profileUsername": "champagnepapi",
+    "userLogin": "moderator",
+    "value": 8
+  },
+  {
+    "profileUsername": "champagnepapi",
+    "userLogin": "admin",
+    "value": 9
+  },
+  {
+    "profileUsername": "mathesobek",
+    "userLogin": "testuser1",
+    "value": 6
+  },
+  {
+    "profileUsername": "mathesobek",
+    "userLogin": "reviewer1",
+    "value": 7
+  },
+  {
+    "profileUsername": "wojteksyk",
+    "userLogin": "admin",
+    "value": 5
+  },
+  {
+    "profileUsername": "wojteksyk",
+    "userLogin": "moderator",
+    "value": 4
+  },
+  {
+    "profileUsername": "janek123",
+    "userLogin": "testuser2",
+    "value": 8
+  },
+  {
+    "profileUsername": "janek123",
+    "userLogin": "reviewer1",
+    "value": 9
+  }
+]

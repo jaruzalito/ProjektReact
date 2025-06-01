@@ -245,13 +245,17 @@ router.get('/:username', async (req, res) => {
       createdAt: new Date()
     };
 
-    await InstagramProfile.findOneAndUpdate(
+    const savedProfile = await InstagramProfile.findOneAndUpdate(
       { username: result.username },
       { $set: result },
       { upsert: true, new: true }
     );
 
-    res.json({ success: true, ...result });
+    res.json({ 
+      success: true, 
+      ...result,
+      avgRating: savedProfile.avgRating
+    });
 
   } catch (error) {
     if (browser) {

@@ -1,0 +1,74 @@
+[
+  {
+    "profileUsername": "prezydent_pl",
+    "userLogin": "admin",
+    "content": "Oficjalny profil Prezydenta RP. Regularnie publikowane treści, wysokie zaangażowanie.",
+    "rating": 9
+  },
+  {
+    "profileUsername": "prezydent_pl",
+    "userLogin": "testuser1",
+    "content": "Prawdziwy profil prezydenta. Dobrze moderowany, treści zgodne z urzędem.",
+    "rating": 10
+  },
+  {
+    "profileUsername": "prezydent_pl",
+    "userLogin": "reviewer1",
+    "content": "Weryfikowany profil państwowy. Profesjonalne zarządzanie social media.",
+    "rating": 8
+  },
+  {
+    "profileUsername": "champagnepapi",
+    "userLogin": "testuser2",
+    "content": "Autentyczny profil Drake'a. Ogromna popularność, regularne posty muzyczne.",
+    "rating": 9
+  },
+  {
+    "profileUsername": "champagnepapi",
+    "userLogin": "moderator",
+    "content": "Zweryfikowany profil artysty. Bardzo duże zasięgi, professional content.",
+    "rating": 8
+  },
+  {
+    "profileUsername": "champagnepapi",
+    "userLogin": "admin",
+    "content": "Globalny influencer w branży muzycznej. Wysokiej jakości treści i zaangażowanie.",
+    "rating": 9
+  },
+  {
+    "profileUsername": "mathesobek",
+    "userLogin": "testuser1",
+    "content": "Normalny profil prywatny. Mało postów ale regularna aktywność w followingu.",
+    "rating": 6
+  },
+  {
+    "profileUsername": "mathesobek",
+    "userLogin": "reviewer1",
+    "content": "Profil wygląda na autentyczny. Proporcja followers/following w normie.",
+    "rating": 7
+  },
+  {
+    "profileUsername": "wojteksyk",
+    "userLogin": "admin",
+    "content": "Mało postów w stosunku do followersów, ale może być nowym użytkownikiem.",
+    "rating": 5
+  },
+  {
+    "profileUsername": "wojteksyk",
+    "userLogin": "moderator",
+    "content": "Podejrzanie mało treści. Stosunek followers do postów może być niepokojący.",
+    "rating": 4
+  },
+  {
+    "profileUsername": "janek123",
+    "userLogin": "testuser2",
+    "content": "Dobry profil fotograficzny. Ciekawe treści o podróżach i naturze.",
+    "rating": 8
+  },
+  {
+    "profileUsername": "janek123",
+    "userLogin": "reviewer1",
+    "content": "Polecam! Miałem przyjemność współpracować przy sesji zdjęciowej.",
+    "rating": 9
+  }
+]

@@ -1,0 +1,22 @@
+[
+  {
+    "login": "admin",
+    "password": "$2y$10$6DIUTLuv8rCCZ592DHae0u9ZfRAAutqn7N5Sk7sgqIYR8VqLWwrXC" 
+  },
+  {
+    "login": "testuser1", 
+    "password": "$2y$10$dI6Fs7sLGoNc7MXhBWI/mOWPQMJsqXT/m/IwHENbOx2C8qT23ahOy"
+  },
+  {
+    "login": "testuser2",
+    "password": "$2y$10$dI6Fs7sLGoNc7MXhBWI/mOWPQMJsqXT/m/IwHENbOx2C8qT23ahOy"
+  },
+  {
+    "login": "reviewer1",
+    "password": "$2y$10$tpGemCp9QXt/2xClTt2cj.ZAn5ZHbVZu7Pul6AwB9inCejjdxhkni"
+  },
+  {
+    "login": "moderator",
+    "password": "$2y$10$LdCycQ8h9HSoiGjcYgXBRe2ndiThPqa44r8sNuoziSd6pMoxwxnQK"
+  }
+]

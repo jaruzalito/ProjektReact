@@ -319,12 +319,12 @@ const LoginForm = ({ onLogin }) => {
           
           {status.error && (
             <p className="message error" role="alert">
-              {status.error}
+              {"Nie udało się zarejestrować: "}
             </p>
           )}
           {status.success && (
             <p className="message success" role="status">
-              {status.success}
+              {"Rejestracja zakończona pomyślnie!"}
             </p>
           )}
         </div>
