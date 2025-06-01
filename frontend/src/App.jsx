@@ -42,7 +42,6 @@ function App() {
     }).catch(err => console.error('Błąd podczas wylogowywania:', err));
   };
 
-  // Pokaż loading podczas sprawdzania statusu logowania
   if (loading) {
     return (
       <div className="loading-container">
@@ -277,7 +276,6 @@ function ProfileSearchPage({ user }) {
           warnings: generateWarnings(data, trustLevel)
         });
         
-        // Załaduj komentarze
         await loadComments(username.trim());
       } else {
         throw new Error(data.error || 'Nie udało się pobrać danych profilu');
@@ -424,7 +422,6 @@ function ProfileSearchPage({ user }) {
               </button>
             </div>
 
-            {/* Sekcja komentarzy */}
             <div className="comments-section">
               <h3>Opinie użytkowników</h3>
               {loadingComments ? (
@@ -493,8 +490,8 @@ function AddReviewPage({ user }) {
   const [comment, setComment] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [isEditing, setIsEditing] = useState(false); // DODANE
-  const [existingComment, setExistingComment] = useState(null); // DODANE
+  const [isEditing, setIsEditing] = useState(false);
+  const [existingComment, setExistingComment] = useState(null);
 
   const API_BASE_URL = process.env.NODE_ENV === 'production' 
     ? 'http://localhost:3001' 
@@ -506,7 +503,6 @@ function AddReviewPage({ user }) {
       return;
     }
     
-    // Sprawdź czy użytkownik ma już komentarz
     const checkExistingComment = async () => {
       try {
         const response = await fetch(`${API_BASE_URL}/api/comments/check/${username}/${user.id}`, {
@@ -548,7 +544,6 @@ function AddReviewPage({ user }) {
 
     try {
       if (isEditing) {
-        // Edytuj istniejący komentarz
         const response = await fetch(`${API_BASE_URL}/api/comments/${existingComment._id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -563,7 +558,6 @@ function AddReviewPage({ user }) {
 
         alert('Komentarz został zaktualizowany!');
       } else {
-        // Dodaj nowy komentarz
         const response = await fetch(`${API_BASE_URL}/api/comments`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
