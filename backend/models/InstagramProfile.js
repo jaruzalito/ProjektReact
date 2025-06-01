@@ -8,7 +8,7 @@ const instagramProfileSchema = new mongoose.Schema({
   fullName: { type: String },
   bio: { type: String },
   avgRating: { type: Number, default: null },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now, index: true }
 });
 
 module.exports = mongoose.model('InstagramProfile', instagramProfileSchema);
