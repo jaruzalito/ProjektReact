@@ -1,0 +1,62 @@
+[
+  {
+    "profileUsername": "prezydent_pl",
+    "userLogin": "admin",
+    "content": "Oficjalny profil Prezydenta RP. Regularnie publikowane treści, wysokie zaangażowanie.",
+    "rating": 9
+  },
+  {
+    "profileUsername": "prezydent_pl",
+    "userLogin": "testuser1",
+    "content": "Prawdziwy profil prezydenta. Dobrze moderowany, treści zgodne z urzędem.",
+    "rating": 10
+  },
+  {
+    "profileUsername": "champagnepapi",
+    "userLogin": "reviewer1",
+    "content": "Autentyczny profil Drake'a. Ogromna popularność, regularne posty.",
+    "rating": 9
+  },
+  {
+    "profileUsername": "champagnepapi",
+    "userLogin": "moderator",
+    "content": "Zweryfikowany profil artysty. Bardzo duże zasięgi, professional content.",
+    "rating": 8
+  },
+  {
+    "profileUsername": "mathesobek",
+    "userLogin": "testuser2",
+    "content": "Normalny profil prywatny. Mało postów ale regularna aktywność w followingu.",
+    "rating": 6
+  },
+  {
+    "profileUsername": "mathesobek",
+    "userLogin": "admin",
+    "content": "Profil wygląda na autentyczny. Proporcja followers/following w normie.",
+    "rating": 7
+  },
+  {
+    "profileUsername": "wojteksyk",
+    "userLogin": "testuser1",
+    "content": "Mało postów w stosunku do followersów, ale może być nowym użytkownikiem.",
+    "rating": 5
+  },
+  {
+    "profileUsername": "wojteksyk",
+    "userLogin": "reviewer1",
+    "content": "Podejrzanie mało treści. Stosunek followers do postów może być niepokojący.",
+    "rating": 4
+  },
+  {
+    "profileUsername": "janek123",
+    "userLogin": "moderator",
+    "content": "Dobry profil fotograficzny. Ciekawe treści o podróżach i naturze.",
+    "rating": 8
+  },
+  {
+    "profileUsername": "janek123",
+    "userLogin": "testuser2",
+    "content": "Polecam! Miałem przyjemność współpracować przy sesji zdjęciowej.",
+    "rating": 9
+  }
+]
