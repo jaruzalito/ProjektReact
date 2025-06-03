@@ -30,11 +30,11 @@ npm run dev
 npm run fixtures
 
 Hasła testowe:
-Rola	Login	Hasło
-admin	admin123	admin123
-testuser1	test123	test123
-reviewer1	revi123	revi123
-moderator	mod123	mod123
+Login	Hasło
+admin	admin123
+testuser1	test123
+reviewer1	revi123
+moderator	mod123
 
 ## C. Podział prac:
 Nie dzieliliśmy się na frontend i backend, tylko na moduły.
