@@ -1,6 +1,7 @@
 # Instagram Checker
 
 ## A. Wykonanie:
+
 - **Cichocki Adrian**
 - **Jaruzal Marcel**
 
@@ -49,3 +50,4 @@ Inne funkcjonalności wykonywaliśmy wspólnie na zasadzie dobra ja zrobie to, a
 ![MongoDB Screenshot](mongo2.png)
 ![MongoDB Screenshot](mongo3.png)
 ![MongoDB Screenshot](mongo4.png)
+```

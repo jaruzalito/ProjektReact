@@ -1,5 +1,8 @@
 {
   "dependencies": {
     "prettier": "^3.5.3"
+  },
+  "scripts": {
+    "prettier": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\""
   }
 }

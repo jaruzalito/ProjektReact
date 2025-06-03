@@ -5,10 +5,10 @@
   --border-color: #333;
   --text-primary: #ffffff;
   --text-secondary: #a8a8a8;
-  --accent-color: #E1306C;
-  --success-color: #4CAF50;
-  --warning-color: #FF5722;
-  --font-main: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  --accent-color: #e1306c;
+  --success-color: #4caf50;
+  --warning-color: #ff5722;
+  --font-main: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 * {
@@ -17,7 +17,9 @@
   box-sizing: border-box;
 }
 
-html, body, #root {
+html,
+body,
+#root {
   height: 100%;
   width: 100%;
 }
@@ -30,7 +32,6 @@ html, body, #root {
   display: flex;
   flex-direction: column;
 }
-
 
 .header {
   background: var(--bg-darker);
@@ -81,12 +82,10 @@ html, body, #root {
   font-size: 1.2rem;
 }
 
-
 .main-content {
   flex: 1;
   padding: 20px 0;
 }
-
 
 .hero-section {
   background: var(--bg-darker);
@@ -119,7 +118,9 @@ html, body, #root {
   text-decoration: none;
   font-weight: 600;
   display: inline-block;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
   border: none;
   cursor: pointer;
   font-size: 1rem;
@@ -144,7 +145,6 @@ html, body, #root {
   margin: 0 auto;
   padding: 0 20px;
 }
-
 
 .profile-card {
   background: var(--bg-darker);
@@ -218,7 +218,6 @@ html, body, #root {
   background: #333;
 }
 
-
 .search-page {
   max-width: 600px;
   margin: 0 auto;
@@ -272,7 +271,6 @@ html, body, #root {
   background: #c91a5a;
 }
 
-
 .faq-page {
   max-width: 800px;
   margin: 0 auto;
@@ -313,7 +311,6 @@ html, body, #root {
   line-height: 1.5;
 }
 
-
 .footer {
   background: var(--bg-darker);
   border-top: 1px solid var(--border-color);
@@ -324,26 +321,24 @@ html, body, #root {
   margin-top: auto;
 }
 
-
 @media (max-width: 768px) {
   .header-content {
     flex-direction: column;
     gap: 12px;
   }
-  
+
   .nav {
     gap: 12px;
   }
-  
+
   .hero-content h1 {
     font-size: 1.8rem;
   }
-  
+
   .profile-grid {
     grid-template-columns: 1fr;
   }
 }
-
 
 .login-link {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -479,18 +474,17 @@ html, body, #root {
   font-weight: 500;
 }
 
-
 @media (max-width: 768px) {
   .user-nav {
     flex-direction: column;
     gap: 8px;
   }
-  
+
   .cta-buttons {
     flex-direction: column;
     align-items: center;
   }
-  
+
   .logout-btn-nav span {
     display: none;
   }
@@ -636,7 +630,8 @@ html, body, #root {
   margin-top: 20px;
 }
 
-.btn-primary, .btn-secondary {
+.btn-primary,
+.btn-secondary {
   padding: 12px 24px;
   border-radius: 8px;
   font-weight: 600;
@@ -733,7 +728,7 @@ html, body, #root {
   border-radius: 20px;
   font-weight: bold;
   color: white;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .rating-star {

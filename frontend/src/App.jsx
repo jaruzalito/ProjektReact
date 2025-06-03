@@ -1,7 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Link, useNavigate, useParams, useLocation } from 'react-router-dom';
-import LoginPage from './pages/LoginPage';
-import './App.css';
+import React, { useState, useEffect } from "react";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Link,
+  useNavigate,
+  useParams,
+  useLocation,
+} from "react-router-dom";
+import LoginPage from "./pages/LoginPage";
+import "./App.css";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -10,9 +18,9 @@ function App() {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        const response = await fetch('http://localhost:3001/verify-token', {
-          method: 'GET',
-          credentials: 'include'
+        const response = await fetch("http://localhost:3001/verify-token", {
+          method: "GET",
+          credentials: "include",
         });
 
         if (response.ok) {
@@ -20,7 +28,7 @@ function App() {
           setUser(data.user);
         }
       } catch (error) {
-        console.error('Błąd podczas sprawdzania statusu logowania:', error);
+        console.error("Błąd podczas sprawdzania statusu logowania:", error);
       } finally {
         setLoading(false);
       }
@@ -35,11 +43,11 @@ function App() {
 
   const handleLogout = () => {
     setUser(null);
-    
-    fetch('http://localhost:3001/logout', {
-      method: 'POST',
-      credentials: 'include'
-    }).catch(err => console.error('Błąd podczas wylogowywania:', err));
+
+    fetch("http://localhost:3001/logout", {
+      method: "POST",
+      credentials: "include",
+    }).catch((err) => console.error("Błąd podczas wylogowywania:", err));
   };
 
   if (loading) {
@@ -81,7 +89,9 @@ function App() {
                 </Link>
               ) : (
                 <div className="user-nav">
-                  <span className="user-greeting">Witaj, {user.login || user.username}!</span>
+                  <span className="user-greeting">
+                    Witaj, {user.login || user.username}!
+                  </span>
                   <button onClick={handleLogout} className="logout-btn-nav">
                     <i className="fas fa-sign-out-alt"></i>
                     <span>Wyloguj</span>
@@ -97,8 +107,14 @@ function App() {
             <Route path="/" element={<HomePage user={user} />} />
             <Route path="/search" element={<ProfileSearchPage user={user} />} />
             <Route path="/faq" element={<FAQPage />} />
-            <Route path="/login" element={<LoginPage onLogin={handleLogin} user={user} />} />
-            <Route path="/add-review/:username" element={<AddReviewPage user={user} />} />
+            <Route
+              path="/login"
+              element={<LoginPage onLogin={handleLogin} user={user} />}
+            />
+            <Route
+              path="/add-review/:username"
+              element={<AddReviewPage user={user} />}
+            />
           </Routes>
         </main>
 
@@ -113,30 +129,31 @@ function App() {
 function HomePage({ user }) {
   const [recentProfiles, setRecentProfiles] = useState([]);
   const [loadingProfiles, setLoadingProfiles] = useState(true);
-  const [profilesError, setProfilesError] = useState('');
+  const [profilesError, setProfilesError] = useState("");
 
-  const API_BASE_URL = process.env.NODE_ENV === 'production' 
-    ? 'http://localhost:3001' 
-    : 'http://localhost:3001';
+  const API_BASE_URL =
+    process.env.NODE_ENV === "production"
+      ? "http://localhost:3001"
+      : "http://localhost:3001";
 
   useEffect(() => {
     const fetchRecentProfiles = async () => {
       try {
         const response = await fetch(`${API_BASE_URL}/api/instagram/recent`, {
-          method: 'GET',
-          credentials: 'include'
+          method: "GET",
+          credentials: "include",
         });
 
         if (response.ok) {
           const data = await response.json();
           setRecentProfiles(data.profiles || []);
         } else {
-          console.error('Błąd podczas pobierania ostatnich profili');
-          setProfilesError('Nie udało się pobrać ostatnich profili');
+          console.error("Błąd podczas pobierania ostatnich profili");
+          setProfilesError("Nie udało się pobrać ostatnich profili");
         }
       } catch (error) {
-        console.error('Błąd podczas pobierania ostatnich profili:', error);
-        setProfilesError('Błąd połączenia z serwerem');
+        console.error("Błąd podczas pobierania ostatnich profili:", error);
+        setProfilesError("Błąd połączenia z serwerem");
       } finally {
         setLoadingProfiles(false);
       }
@@ -146,34 +163,37 @@ function HomePage({ user }) {
   }, [API_BASE_URL]);
 
   const calculateTrustLevel = (profile) => {
-    let trust = 50; 
-    
+    let trust = 50;
+
     if (profile.followers > 1000) trust += 15;
     if (profile.followers > 10000) trust += 10;
     if (profile.followers > 100000) trust += 5;
-    
+
     const ratio = profile.following / Math.max(profile.followers, 1);
-    if (ratio < 0.5) trust += 10; 
-    if (ratio > 2) trust -= 15; 
-    if (ratio > 5) trust -= 20; 
-    
+    if (ratio < 0.5) trust += 10;
+    if (ratio > 2) trust -= 15;
+    if (ratio > 5) trust -= 20;
+
     if (profile.posts > 50) trust += 10;
     if (profile.posts < 10) trust -= 15;
-    
-    if (profile.fullName && profile.fullName !== 'Nieznane') trust += 5;
-    if (profile.bio && profile.bio !== 'Brak opisu' && profile.bio.length > 10) trust += 10;
-    
+
+    if (profile.fullName && profile.fullName !== "Nieznane") trust += 5;
+    if (profile.bio && profile.bio !== "Brak opisu" && profile.bio.length > 10)
+      trust += 10;
+
     return Math.max(0, Math.min(100, trust));
   };
 
   const generateWarnings = (profile, trustLevel) => {
     const warnings = [];
-    
-    if (trustLevel < 30) warnings.push('Bardzo niski poziom zaufania!');
-    if (profile.following / Math.max(profile.followers, 1) > 5) warnings.push('Podejrzanie dużo obserwowanych!');
-    if (profile.posts < 5) warnings.push('Bardzo mało postów');
-    if (profile.followers < 50 && profile.following > 500) warnings.push('Możliwy bot lub spam');
-    
+
+    if (trustLevel < 30) warnings.push("Bardzo niski poziom zaufania!");
+    if (profile.following / Math.max(profile.followers, 1) > 5)
+      warnings.push("Podejrzanie dużo obserwowanych!");
+    if (profile.posts < 5) warnings.push("Bardzo mało postów");
+    if (profile.followers < 50 && profile.following > 500)
+      warnings.push("Możliwy bot lub spam");
+
     return warnings;
   };
 
@@ -182,13 +202,22 @@ function HomePage({ user }) {
       <section className="hero-section">
         <div className="hero-content">
           <h1>Sprawdź, kto Cię dodał!</h1>
-          <p>Unikaj fake profilów i oszustów. Weryfikuj użytkowników przed dodaniem.</p>
+          <p>
+            Unikaj fake profilów i oszustów. Weryfikuj użytkowników przed
+            dodaniem.
+          </p>
           {user ? (
-            <Link to="/search" className="cta-button">Sprawdź teraz</Link>
+            <Link to="/search" className="cta-button">
+              Sprawdź teraz
+            </Link>
           ) : (
             <div className="cta-buttons">
-              <Link to="/search" className="cta-button">Sprawdź teraz</Link>
-              <Link to="/login" className="cta-button secondary">Zaloguj się dla pełnych funkcji</Link>
+              <Link to="/search" className="cta-button">
+                Sprawdź teraz
+              </Link>
+              <Link to="/login" className="cta-button secondary">
+                Zaloguj się dla pełnych funkcji
+              </Link>
             </div>
           )}
         </div>
@@ -211,9 +240,9 @@ function HomePage({ user }) {
             {recentProfiles.map((profile, index) => {
               const trustLevel = calculateTrustLevel(profile);
               const warnings = generateWarnings(profile, trustLevel);
-              
+
               return (
-                <ProfileCard 
+                <ProfileCard
                   key={index}
                   username={profile.username}
                   trustLevel={trustLevel}
@@ -228,7 +257,9 @@ function HomePage({ user }) {
           <div className="no-profiles">
             <i className="fas fa-search"></i>
             <p>Brak ostatnio sprawdzonych profili</p>
-            <Link to="/search" className="cta-button">Sprawdź pierwszy profil</Link>
+            <Link to="/search" className="cta-button">
+              Sprawdź pierwszy profil
+            </Link>
           </div>
         )}
       </section>
@@ -243,72 +274,73 @@ function ProfileCard({ username, trustLevel, avgRating, warning, user }) {
         <i className="fas fa-user-circle"></i>
       </div>
       <h3>@{username}</h3>
-      <div className={`trust-level ${trustLevel > 70 ? 'high' : 'low'}`}>
-        Zaufanie: {trustLevel}% {trustLevel > 70 ? '✅' : '⚠️'}
+      <div className={`trust-level ${trustLevel > 70 ? "high" : "low"}`}>
+        Zaufanie: {trustLevel}% {trustLevel > 70 ? "✅" : "⚠️"}
       </div>
 
-
-{user ? (
-  <Link to={`/search?username=${username}`} className="view-button">
-    Zobacz opinie
-  </Link>
-) : (
-  <button className="view-button" disabled>
-    Zaloguj się aby zobaczyć
-  </button>
-)}
+      {user ? (
+        <Link to={`/search?username=${username}`} className="view-button">
+          Zobacz opinie
+        </Link>
+      ) : (
+        <button className="view-button" disabled>
+          Zaloguj się aby zobaczyć
+        </button>
+      )}
     </div>
   );
 }
 
 function ProfileSearchPage({ user }) {
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState("");
   const [loading, setLoading] = useState(false);
   const [profileData, setProfileData] = useState(null);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [comments, setComments] = useState([]);
   const [loadingComments, setLoadingComments] = useState(false);
 
-  const API_BASE_URL = process.env.NODE_ENV === 'production' 
-    ? 'http://localhost:3001' 
-    : 'http://localhost:3001';
+  const API_BASE_URL =
+    process.env.NODE_ENV === "production"
+      ? "http://localhost:3001"
+      : "http://localhost:3001";
 
   const calculateTrustLevel = (profile) => {
-    let trust = 50; 
-    
+    let trust = 50;
+
     if (profile.followers > 1000) trust += 15;
     if (profile.followers > 10000) trust += 10;
     if (profile.followers > 100000) trust += 5;
-    
+
     const ratio = profile.following / Math.max(profile.followers, 1);
-    if (ratio < 0.5) trust += 10; 
-    if (ratio > 2) trust -= 15; 
-    if (ratio > 5) trust -= 20; 
-    
+    if (ratio < 0.5) trust += 10;
+    if (ratio > 2) trust -= 15;
+    if (ratio > 5) trust -= 20;
+
     if (profile.posts > 50) trust += 10;
     if (profile.posts < 10) trust -= 15;
-    
-    if (profile.fullName && profile.fullName !== 'Nieznane') trust += 5;
-    if (profile.bio && profile.bio !== 'Brak opisu' && profile.bio.length > 10) trust += 10;
-    
+
+    if (profile.fullName && profile.fullName !== "Nieznane") trust += 5;
+    if (profile.bio && profile.bio !== "Brak opisu" && profile.bio.length > 10)
+      trust += 10;
+
     return Math.max(0, Math.min(100, trust));
   };
 
   const loadComments = async (username) => {
     if (!user) return;
-    
+
     setLoadingComments(true);
     try {
       const response = await fetch(`${API_BASE_URL}/api/comments/${username}`, {
-        credentials: 'include'
+        credentials: "include",
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setComments(data.comments || []);
       }
     } catch (err) {
-      console.error('Błąd podczas ładowania komentarzy:', err);
+      console.error("Błąd podczas ładowania komentarzy:", err);
     } finally {
       setLoadingComments(false);
     }
@@ -318,7 +350,7 @@ function ProfileSearchPage({ user }) {
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const usernameFromQuery = params.get('username');
+    const usernameFromQuery = params.get("username");
     if (usernameFromQuery) {
       setUsername(usernameFromQuery);
       if (user) {
@@ -330,44 +362,51 @@ function ProfileSearchPage({ user }) {
 
   // Zmień handleSearch tak, by przyjmował argument:
   const handleSearch = async (searchUsername) => {
-    const uname = (typeof searchUsername === 'string' ? searchUsername : username).trim();
+    const uname = (
+      typeof searchUsername === "string" ? searchUsername : username
+    ).trim();
     if (!user) {
-      alert('Zaloguj się, aby móc sprawdzać profile!');
+      alert("Zaloguj się, aby móc sprawdzać profile!");
       return;
     }
     if (!uname) {
-      alert('Wprowadź nazwę użytkownika!');
+      alert("Wprowadź nazwę użytkownika!");
       return;
     }
     setLoading(true);
-    setError('');
+    setError("");
     setProfileData(null);
     setComments([]);
     try {
       const apiUrl = `${API_BASE_URL}/api/instagram/${uname}`;
       const response = await fetch(apiUrl, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include'
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
       });
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        throw new Error('Serwer zwrócił HTML zamiast JSON - sprawdź konfigurację CORS i URL API');
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error(
+          "Serwer zwrócił HTML zamiast JSON - sprawdź konfigurację CORS i URL API",
+        );
       }
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.error || `HTTP ${response.status}: Błąd podczas pobierania profilu`);
+        throw new Error(
+          data.error ||
+            `HTTP ${response.status}: Błąd podczas pobierania profilu`,
+        );
       }
       if (data.success) {
         const trustLevel = calculateTrustLevel(data);
         setProfileData({
           ...data,
           trustLevel,
-          warnings: generateWarnings(data, trustLevel)
+          warnings: generateWarnings(data, trustLevel),
         });
         await loadComments(uname);
       } else {
-        throw new Error(data.error || 'Nie udało się pobrać danych profilu');
+        throw new Error(data.error || "Nie udało się pobrać danych profilu");
       }
     } catch (err) {
       setError(`Błąd: ${err.message}`);
@@ -378,17 +417,19 @@ function ProfileSearchPage({ user }) {
 
   const generateWarnings = (profile, trustLevel) => {
     const warnings = [];
-    
-    if (trustLevel < 30) warnings.push('Bardzo niski poziom zaufania!');
-    if (profile.following / Math.max(profile.followers, 1) > 5) warnings.push('Podejrzanie dużo obserwowanych!');
-    if (profile.posts < 5) warnings.push('Bardzo mało postów');
-    if (profile.followers < 50 && profile.following > 500) warnings.push('Możliwy bot lub spam');
-    
+
+    if (trustLevel < 30) warnings.push("Bardzo niski poziom zaufania!");
+    if (profile.following / Math.max(profile.followers, 1) > 5)
+      warnings.push("Podejrzanie dużo obserwowanych!");
+    if (profile.posts < 5) warnings.push("Bardzo mało postów");
+    if (profile.followers < 50 && profile.following > 500)
+      warnings.push("Możliwy bot lub spam");
+
     return warnings;
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleSearch();
     }
   };
@@ -400,21 +441,23 @@ function ProfileSearchPage({ user }) {
         {!user && (
           <div className="login-prompt">
             <p>⚠️ Musisz być zalogowany, aby sprawdzać profile</p>
-            <Link to="/login" className="login-prompt-link">Zaloguj się tutaj</Link>
+            <Link to="/login" className="login-prompt-link">
+              Zaloguj się tutaj
+            </Link>
           </div>
         )}
-        
+
         <div className="search-box">
-          <input 
-            type="text" 
-            placeholder="Wpisz nazwę użytkownika..." 
+          <input
+            type="text"
+            placeholder="Wpisz nazwę użytkownika..."
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             onKeyPress={handleKeyPress}
             disabled={!user || loading}
           />
-          <button 
-            className="search-button" 
+          <button
+            className="search-button"
             onClick={handleSearch}
             disabled={!user || loading}
           >
@@ -451,16 +494,24 @@ function ProfileSearchPage({ user }) {
                   {profileData.avgRating && (
                     <div className="avg-rating-display">
                       <i className="fas fa-star rating-star"></i>
-                      <span className="avg-rating-value">{profileData.avgRating.toFixed(1)}</span>
+                      <span className="avg-rating-value">
+                        {profileData.avgRating.toFixed(1)}
+                      </span>
                       <span className="rating-scale">/10</span>
                     </div>
                   )}
                 </div>
-                <div className={`trust-score ${profileData.trustLevel > 70 ? 'high' : profileData.trustLevel > 40 ? 'medium' : 'low'}`}>
+                <div
+                  className={`trust-score ${profileData.trustLevel > 70 ? "high" : profileData.trustLevel > 40 ? "medium" : "low"}`}
+                >
                   <span className="trust-label">Poziom zaufania:</span>
                   <span className="trust-value">{profileData.trustLevel}%</span>
                   <span className="trust-icon">
-                    {profileData.trustLevel > 70 ? '✅' : profileData.trustLevel > 40 ? '⚠️' : '❌'}
+                    {profileData.trustLevel > 70
+                      ? "✅"
+                      : profileData.trustLevel > 40
+                        ? "⚠️"
+                        : "❌"}
                   </span>
                 </div>
               </div>
@@ -468,22 +519,28 @@ function ProfileSearchPage({ user }) {
             <div className="profile-stats">
               <div className="stat">
                 <i className="fas fa-users"></i>
-                <span className="stat-number">{profileData.followers.toLocaleString()}</span>
+                <span className="stat-number">
+                  {profileData.followers.toLocaleString()}
+                </span>
                 <span className="stat-label"> Obserwujących</span>
               </div>
               <div className="stat">
                 <i className="fas fa-user-plus"></i>
-                <span className="stat-number">{profileData.following.toLocaleString()}</span>
+                <span className="stat-number">
+                  {profileData.following.toLocaleString()}
+                </span>
                 <span className="stat-label"> Obserwowanych</span>
               </div>
               <div className="stat">
                 <i className="fas fa-camera"></i>
-                <span className="stat-number">{profileData.posts.toLocaleString()}</span>
+                <span className="stat-number">
+                  {profileData.posts.toLocaleString()}
+                </span>
                 <span className="stat-label">Posty</span>
               </div>
             </div>
 
-            {profileData.bio && profileData.bio !== 'Brak opisu' && (
+            {profileData.bio && profileData.bio !== "Brak opisu" && (
               <div className="profile-bio">
                 <h4>Opis profilu:</h4>
                 <p>"{profileData.bio}"</p>
@@ -502,7 +559,10 @@ function ProfileSearchPage({ user }) {
             )}
 
             <div className="profile-actions">
-              <Link to={`/add-review/${profileData.username}`} className="btn-primary">
+              <Link
+                to={`/add-review/${profileData.username}`}
+                className="btn-primary"
+              >
                 <i className="fas fa-thumbs-up"></i> Dodaj opinię
               </Link>
               <button className="btn-secondary">
@@ -519,12 +579,17 @@ function ProfileSearchPage({ user }) {
               ) : comments.length > 0 ? (
                 <div className="comments-list">
                   {comments.map((comment, index) => (
-                    <CommentCard key={index} comment={comment}/>
+                    <CommentCard key={index} comment={comment} />
                   ))}
                 </div>
               ) : (
                 <div className="no-comments">
-                  <p>Brak opinii dla tego profilu. <Link to={`/add-review/${profileData.username}`}>Dodaj pierwszą!</Link></p>
+                  <p>
+                    Brak opinii dla tego profilu.{" "}
+                    <Link to={`/add-review/${profileData.username}`}>
+                      Dodaj pierwszą!
+                    </Link>
+                  </p>
                 </div>
               )}
             </div>
@@ -537,12 +602,12 @@ function ProfileSearchPage({ user }) {
 
 function CommentCard({ comment }) {
   const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('pl-PL', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(date).toLocaleDateString("pl-PL", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -551,7 +616,9 @@ function CommentCard({ comment }) {
       <div className="comment-header">
         <div className="comment-author">
           <i className="fas fa-user-circle"></i>
-          <span className="author-name">{comment.user?.login || 'Anonimowy'}</span>
+          <span className="author-name">
+            {comment.user?.login || "Anonimowy"}
+          </span>
         </div>
         <div className="comment-meta">
           {comment.rating && (
@@ -575,28 +642,32 @@ function AddReviewPage({ user }) {
   const navigate = useNavigate();
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
-  const [comment, setComment] = useState('');
+  const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [existingComment, setExistingComment] = useState(null);
 
-  const API_BASE_URL = process.env.NODE_ENV === 'production' 
-    ? 'http://localhost:3001' 
-    : 'http://localhost:3001';
+  const API_BASE_URL =
+    process.env.NODE_ENV === "production"
+      ? "http://localhost:3001"
+      : "http://localhost:3001";
 
   useEffect(() => {
     if (!user) {
-      navigate('/login');
+      navigate("/login");
       return;
     }
-    
+
     const checkExistingComment = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/comments/check/${username}/${user.id}`, {
-          credentials: 'include'
-        });
-        
+        const response = await fetch(
+          `${API_BASE_URL}/api/comments/check/${username}/${user.id}`,
+          {
+            credentials: "include",
+          },
+        );
+
         if (response.ok) {
           const data = await response.json();
           if (data.hasComment) {
@@ -607,7 +678,7 @@ function AddReviewPage({ user }) {
           }
         }
       } catch (err) {
-        console.error('Błąd sprawdzania komentarza:', err);
+        console.error("Błąd sprawdzania komentarza:", err);
       }
     };
 
@@ -618,52 +689,55 @@ function AddReviewPage({ user }) {
     e.preventDefault();
 
     if (!rating) {
-      setError('Wybierz ocenę od 1 do 10 gwiazdek');
+      setError("Wybierz ocenę od 1 do 10 gwiazdek");
       return;
     }
 
     if (!comment.trim()) {
-      setError('Napisz komentarz');
+      setError("Napisz komentarz");
       return;
     }
 
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
       if (isEditing) {
-        const response = await fetch(`${API_BASE_URL}/api/comments/${existingComment._id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ comment, rating, userId: user.id })
-        });
+        const response = await fetch(
+          `${API_BASE_URL}/api/comments/${existingComment._id}`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ comment, rating, userId: user.id }),
+          },
+        );
 
         const data = await response.json();
         if (!response.ok) {
-          throw new Error(data.error || 'Błąd podczas aktualizacji komentarza');
+          throw new Error(data.error || "Błąd podczas aktualizacji komentarza");
         }
 
-        alert('Komentarz został zaktualizowany!');
+        alert("Komentarz został zaktualizowany!");
       } else {
         const response = await fetch(`${API_BASE_URL}/api/comments`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ username, comment, rating, userId: user.id })
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ username, comment, rating, userId: user.id }),
         });
 
         const data = await response.json();
         if (!response.ok) {
-          throw new Error(data.error || 'Błąd podczas dodawania komentarza');
+          throw new Error(data.error || "Błąd podczas dodawania komentarza");
         }
 
-        alert('Komentarz został dodany!');
+        alert("Komentarz został dodany!");
       }
 
       navigate(`/search`);
     } catch (err) {
-      console.error('Błąd:', err);
+      console.error("Błąd:", err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -678,8 +752,10 @@ function AddReviewPage({ user }) {
     <div className="add-review-page">
       <div className="review-container">
         <div className="review-header">
-          <h1>{isEditing ? 'Edytuj opinię' : 'Dodaj opinię'}</h1>
-          <p>Oceń profil <strong>@{username}</strong></p>
+          <h1>{isEditing ? "Edytuj opinię" : "Dodaj opinię"}</h1>
+          <p>
+            Oceń profil <strong>@{username}</strong>
+          </p>
           {isEditing && (
             <p className="edit-notice">Edytujesz swoją wcześniejszą opinię</p>
           )}
@@ -695,7 +771,7 @@ function AddReviewPage({ user }) {
                   <button
                     key={index}
                     type="button"
-                    className={`star ${(hoverRating || rating) >= starValue ? 'active' : ''}`}
+                    className={`star ${(hoverRating || rating) >= starValue ? "active" : ""}`}
                     onClick={() => setRating(starValue)}
                     onMouseEnter={() => setHoverRating(starValue)}
                     onMouseLeave={() => setHoverRating(0)}
@@ -720,9 +796,7 @@ function AddReviewPage({ user }) {
               rows="5"
               maxLength="500"
             />
-            <div className="char-count">
-              {comment.length}/500 znaków
-            </div>
+            <div className="char-count">{comment.length}/500 znaków</div>
           </div>
 
           {error && (
@@ -735,7 +809,7 @@ function AddReviewPage({ user }) {
           <div className="form-actions">
             <button
               type="button"
-              onClick={() => navigate('/search')}
+              onClick={() => navigate("/search")}
               className="btn-secondary"
               disabled={loading}
             >
@@ -748,11 +822,13 @@ function AddReviewPage({ user }) {
             >
               {loading ? (
                 <>
-                  <i className="fas fa-spinner fa-spin"></i> {isEditing ? 'Aktualizowanie...' : 'Dodawanie...'}
+                  <i className="fas fa-spinner fa-spin"></i>{" "}
+                  {isEditing ? "Aktualizowanie..." : "Dodawanie..."}
                 </>
               ) : (
                 <>
-                  <i className="fas fa-thumbs-up"></i> {isEditing ? 'Zaktualizuj opinię' : 'Dodaj opinię'}
+                  <i className="fas fa-thumbs-up"></i>{" "}
+                  {isEditing ? "Zaktualizuj opinię" : "Dodaj opinię"}
                 </>
               )}
             </button>
@@ -767,20 +843,22 @@ function FAQPage() {
   const faqItems = [
     {
       question: "✅ Czy Instagram Checker jest darmowy?",
-      answer: "Tak! Weryfikacja profili jest całkowicie bezpłatna."
+      answer: "Tak! Weryfikacja profili jest całkowicie bezpłatna.",
     },
     {
       question: "🔍 Skąd bierzemy dane?",
-      answer: "Analizujemy aktywność profilu i opinie innych użytkowników."
+      answer: "Analizujemy aktywność profilu i opinie innych użytkowników.",
     },
     {
       question: "⚖️ Jak działa system ocen?",
-      answer: "Ocena zaufania opiera się na analizie aktywności profilu i zgłoszeniach społeczności."
+      answer:
+        "Ocena zaufania opiera się na analizie aktywności profilu i zgłoszeniach społeczności.",
     },
     {
       question: "🔐 Dlaczego muszę się zalogować?",
-      answer: "Logowanie pozwala na dodawanie opinii, pełne sprawdzanie profili i dostęp do historii wyszukiwań."
-    }
+      answer:
+        "Logowanie pozwala na dodawanie opinii, pełne sprawdzanie profili i dostęp do historii wyszukiwań.",
+    },
   ];
 
   return (

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
 const LoginForm = ({ onLogin }) => {
-  const [currentView, setCurrentView] = useState('login');
+  const [currentView, setCurrentView] = useState("login");
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -11,12 +11,12 @@ const LoginForm = ({ onLogin }) => {
 
   const checkAuthStatus = async () => {
     try {
-      const response = await fetch('http://localhost:3001/verify-token', {
-        method: 'GET',
-        credentials: 'include',
+      const response = await fetch("http://localhost:3001/verify-token", {
+        method: "GET",
+        credentials: "include",
         headers: {
-          'Accept': 'application/json'
-        }
+          Accept: "application/json",
+        },
       });
 
       if (response.ok) {
@@ -25,7 +25,7 @@ const LoginForm = ({ onLogin }) => {
         if (onLogin) onLogin(data.user);
       }
     } catch (error) {
-      console.log('No valid session found');
+      console.log("No valid session found");
     } finally {
       setIsLoading(false);
     }
@@ -33,74 +33,75 @@ const LoginForm = ({ onLogin }) => {
 
   const LoginFormComponent = () => {
     const [formData, setFormData] = useState({
-      login: '',
-      password: ''
+      login: "",
+      password: "",
     });
     const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState('');
-    const [messageType, setMessageType] = useState('');
+    const [message, setMessage] = useState("");
+    const [messageType, setMessageType] = useState("");
 
     const handleChange = (e) => {
       setFormData({
         ...formData,
-        [e.target.name]: e.target.value
+        [e.target.name]: e.target.value,
       });
     };
 
     const handleSubmit = async (e) => {
       e.preventDefault();
       setLoading(true);
-      setMessage('');
+      setMessage("");
 
       try {
-        console.log('Sending login request:', {
+        console.log("Sending login request:", {
           login: formData.login.trim(),
-          passwordLength: formData.password.length
+          passwordLength: formData.password.length,
         });
 
-        const response = await fetch('http://localhost:3001/login', {
-          method: 'POST',
+        const response = await fetch("http://localhost:3001/login", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
+            "Content-Type": "application/json",
+            Accept: "application/json",
           },
-          credentials: 'include',
+          credentials: "include",
           body: JSON.stringify({
             login: formData.login.trim(),
-            password: formData.password
-          })
+            password: formData.password,
+          }),
         });
 
-        console.log('Login response status:', response.status);
-        
+        console.log("Login response status:", response.status);
+
         const data = await response.json();
-        console.log('Login response data:', data);
+        console.log("Login response data:", data);
 
         if (response.ok) {
-          setMessage('Logowanie udane!');
-          setMessageType('success');
-          
+          setMessage("Logowanie udane!");
+          setMessageType("success");
+
           setUser(data.user);
           if (onLogin) onLogin(data.user);
-          
-          console.log('Zalogowany użytkownik:', data.user);
-          
-          setFormData({ login: '', password: '' });
-          
+
+          console.log("Zalogowany użytkownik:", data.user);
+
+          setFormData({ login: "", password: "" });
         } else {
           if (response.status === 401) {
-            setMessage('Nieprawidłowy login lub hasło');
+            setMessage("Nieprawidłowy login lub hasło");
           } else if (response.status === 429) {
-            setMessage('Zbyt wiele prób logowania. Spróbuj ponownie później');
+            setMessage("Zbyt wiele prób logowania. Spróbuj ponownie później");
           } else {
-            setMessage(data.error || data.message || 'Błąd logowania');
+            setMessage(data.error || data.message || "Błąd logowania");
           }
-          setMessageType('error');
+          setMessageType("error");
         }
       } catch (error) {
-        console.error('Login error:', error);
-        setMessage('Błąd połączenia z serwerem. Sprawdź czy serwer działa na porcie 3001');
-        setMessageType('error');
+        console.error("Login error:", error);
+        setMessage(
+          "Błąd połączenia z serwerem. Sprawdź czy serwer działa na porcie 3001",
+        );
+        setMessageType("error");
       } finally {
         setLoading(false);
       }
@@ -109,13 +110,16 @@ const LoginForm = ({ onLogin }) => {
     return (
       <div className="form-container">
         <h2>Logowanie</h2>
-        
+
         {message && (
-          <div className={`message ${messageType}`} role={messageType === 'error' ? 'alert' : 'status'}>
+          <div
+            className={`message ${messageType}`}
+            role={messageType === "error" ? "alert" : "status"}
+          >
             {message}
           </div>
         )}
-        
+
         <div>
           <div className="form-group">
             <label htmlFor="login">Login:</label>
@@ -148,20 +152,20 @@ const LoginForm = ({ onLogin }) => {
             />
           </div>
 
-          <button 
+          <button
             onClick={handleSubmit}
             disabled={loading}
             className="submit-btn"
           >
-            {loading ? 'Logowanie...' : 'Zaloguj się'}
+            {loading ? "Logowanie..." : "Zaloguj się"}
           </button>
         </div>
-        
+
         <p className="switch-form">
-          Nie masz konta? 
-          <button 
-            type="button" 
-            onClick={() => setCurrentView('register')}
+          Nie masz konta?
+          <button
+            type="button"
+            onClick={() => setCurrentView("register")}
             className="link-btn"
           >
             Zarejestruj się
@@ -175,16 +179,16 @@ const LoginForm = ({ onLogin }) => {
     const [formData, setFormData] = useState({
       login: "",
       password: "",
-      confirmPassword: ""
+      confirmPassword: "",
     });
     const [status, setStatus] = useState({ error: "", success: "" });
     const [loading, setLoading] = useState(false);
 
     const handleChange = (e) => {
       const { name, value } = e.target;
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        [name]: value
+        [name]: value,
       }));
     };
 
@@ -200,65 +204,81 @@ const LoginForm = ({ onLogin }) => {
       }
 
       if (formData.password.length < 6) {
-        setStatus({ error: "Hasło musi mieć co najmniej 6 znaków", success: "" });
+        setStatus({
+          error: "Hasło musi mieć co najmniej 6 znaków",
+          success: "",
+        });
         setLoading(false);
         return;
       }
 
       if (formData.login.trim().length < 3) {
-        setStatus({ error: "Login musi mieć co najmniej 3 znaki", success: "" });
+        setStatus({
+          error: "Login musi mieć co najmniej 3 znaki",
+          success: "",
+        });
         setLoading(false);
         return;
       }
 
       try {
-        console.log('Sending registration request:', {
+        console.log("Sending registration request:", {
           login: formData.login.trim(),
-          passwordLength: formData.password.length
+          passwordLength: formData.password.length,
         });
 
         const response = await fetch("http://localhost:3001/register", {
           method: "POST",
-          headers: { 
+          headers: {
             "Content-Type": "application/json",
-            "Accept": "application/json"
+            Accept: "application/json",
           },
           body: JSON.stringify({
             login: formData.login.trim(),
-            password: formData.password
+            password: formData.password,
           }),
-          credentials: "include" 
+          credentials: "include",
         });
 
-        console.log('Registration response status:', response.status);
-        
+        console.log("Registration response status:", response.status);
+
         const data = await response.json();
-        console.log('Registration response data:', data);
+        console.log("Registration response data:", data);
 
         if (response.ok) {
-          setStatus({ 
+          setStatus({
             success: data.message || "Rejestracja zakończona pomyślnie!",
-            error: "" 
+            error: "",
           });
           setFormData({
             login: "",
             password: "",
-            confirmPassword: ""
+            confirmPassword: "",
           });
         } else {
           if (response.status === 409) {
-            setStatus({ error: "Użytkownik o takim loginie już istnieje", success: "" });
+            setStatus({
+              error: "Użytkownik o takim loginie już istnieje",
+              success: "",
+            });
           } else if (response.status === 400) {
-            setStatus({ error: data.message || "Nieprawidłowe dane", success: "" });
+            setStatus({
+              error: data.message || "Nieprawidłowe dane",
+              success: "",
+            });
           } else {
-            setStatus({ error: data.message || "Nie udało się zarejestrować", success: "" });
+            setStatus({
+              error: data.message || "Nie udało się zarejestrować",
+              success: "",
+            });
           }
         }
       } catch (err) {
         console.error("Registration error:", err);
         setStatus({
-          error: "Błąd połączenia z serwerem. Sprawdź czy serwer działa na porcie 3001",
-          success: ""
+          error:
+            "Błąd połączenia z serwerem. Sprawdź czy serwer działa na porcie 3001",
+          success: "",
         });
       } finally {
         setLoading(false);
@@ -282,7 +302,7 @@ const LoginForm = ({ onLogin }) => {
               disabled={loading}
             />
           </div>
-          
+
           <div className="form-group">
             <input
               type="password"
@@ -295,7 +315,7 @@ const LoginForm = ({ onLogin }) => {
               disabled={loading}
             />
           </div>
-          
+
           <div className="form-group">
             <input
               type="password"
@@ -308,15 +328,15 @@ const LoginForm = ({ onLogin }) => {
               disabled={loading}
             />
           </div>
-          
-          <button 
+
+          <button
             onClick={handleSubmit}
-            disabled={loading} 
+            disabled={loading}
             className="submit-btn"
           >
-            {loading ? 'Rejestracja...' : 'Zarejestruj się'}
+            {loading ? "Rejestracja..." : "Zarejestruj się"}
           </button>
-          
+
           {status.error && (
             <p className="message error" role="alert">
               {"Nie udało się zarejestrować: "}
@@ -328,12 +348,12 @@ const LoginForm = ({ onLogin }) => {
             </p>
           )}
         </div>
-        
+
         <p className="switch-form">
-          Masz już konto? 
-          <button 
-            type="button" 
-            onClick={() => setCurrentView('login')}
+          Masz już konto?
+          <button
+            type="button"
+            onClick={() => setCurrentView("login")}
             className="link-btn"
           >
             Zaloguj się
@@ -346,16 +366,16 @@ const LoginForm = ({ onLogin }) => {
   const Dashboard = () => {
     const handleLogout = async () => {
       try {
-        await fetch('http://localhost:3001/logout', {
-          method: 'POST',
-          credentials: 'include'
+        await fetch("http://localhost:3001/logout", {
+          method: "POST",
+          credentials: "include",
         });
       } catch (error) {
-        console.error('Logout error:', error);
+        console.error("Logout error:", error);
       }
-      
+
       setUser(null);
-      setCurrentView('login');
+      setCurrentView("login");
       if (onLogin) onLogin(null);
     };
 
@@ -363,13 +383,12 @@ const LoginForm = ({ onLogin }) => {
       <div className="form-container">
         <h2>Panel użytkownika</h2>
         <div className="user-info">
-          <p>Witaj, <strong>{user?.login || user?.username}</strong>!</p>
+          <p>
+            Witaj, <strong>{user?.login || user?.username}</strong>!
+          </p>
           <p>Jesteś pomyślnie zalogowany.</p>
         </div>
-        <button 
-          onClick={handleLogout}
-          className="submit-btn logout-btn"
-        >
+        <button onClick={handleLogout} className="submit-btn logout-btn">
           Wyloguj się
         </button>
       </div>
@@ -380,7 +399,7 @@ const LoginForm = ({ onLogin }) => {
   if (isLoading) {
     return (
       <div className="form-container">
-        <div style={{ textAlign: 'center', padding: '2rem' }}>
+        <div style={{ textAlign: "center", padding: "2rem" }}>
           <p>Sprawdzanie sesji...</p>
         </div>
       </div>
@@ -528,10 +547,10 @@ const LoginForm = ({ onLogin }) => {
           color: #2c3e50;
         }
       `}</style>
-      
+
       {user ? (
         <Dashboard />
-      ) : currentView === 'login' ? (
+      ) : currentView === "login" ? (
         <LoginFormComponent />
       ) : (
         <RegisterForm />

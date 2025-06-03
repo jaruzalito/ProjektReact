@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 const InstagramProfileFetcher = () => {
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState("");
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const handleSearch = async () => {
     if (!username.trim()) {
-      setError('Please enter a username');
+      setError("Please enter a username");
       return;
     }
 
@@ -17,35 +17,39 @@ const InstagramProfileFetcher = () => {
     setProfile(null);
 
     try {
-      console.log('Fetching profile for:', username);
-      
-      const response = await fetch(`http://localhost:3001/api/instagram/${username}`);
+      console.log("Fetching profile for:", username);
+
+      const response = await fetch(
+        `http://localhost:3001/api/instagram/${username}`,
+      );
       const data = await response.json();
 
       if (!response.ok) {
         throw new Error(data.error || `HTTP error! status: ${response.status}`);
       }
 
-      console.log('Profile data received:', data);
+      console.log("Profile data received:", data);
       setProfile(data);
     } catch (err) {
-      console.error('Error fetching profile:', err);
-      setError(err.message || 'Failed to fetch profile');
+      console.error("Error fetching profile:", err);
+      setError(err.message || "Failed to fetch profile");
     } finally {
       setLoading(false);
     }
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleSearch();
     }
   };
 
   return (
     <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-lg">
-      <h2 className="text-2xl font-bold mb-4 text-center">Instagram Profile Fetcher</h2>
-      
+      <h2 className="text-2xl font-bold mb-4 text-center">
+        Instagram Profile Fetcher
+      </h2>
+
       <div className="mb-4">
         <input
           type="text"
@@ -63,11 +67,11 @@ const InstagramProfileFetcher = () => {
         disabled={loading || !username.trim()}
         className={`w-full py-2 px-4 rounded-md font-medium ${
           loading || !username.trim()
-            ? 'bg-gray-300 cursor-not-allowed'
-            : 'bg-blue-500 hover:bg-blue-600 text-white'
+            ? "bg-gray-300 cursor-not-allowed"
+            : "bg-blue-500 hover:bg-blue-600 text-white"
         }`}
       >
-        {loading ? 'Fetching...' : 'Fetch Profile'}
+        {loading ? "Fetching..." : "Fetch Profile"}
       </button>
 
       {error && (
@@ -85,15 +89,21 @@ const InstagramProfileFetcher = () => {
 
           <div className="grid grid-cols-3 gap-4 mb-4">
             <div className="text-center">
-              <div className="text-xl font-bold">{profile.posts?.toLocaleString()}</div>
+              <div className="text-xl font-bold">
+                {profile.posts?.toLocaleString()}
+              </div>
               <div className="text-sm text-gray-600">Posts</div>
             </div>
             <div className="text-center">
-              <div className="text-xl font-bold">{profile.followers?.toLocaleString()}</div>
+              <div className="text-xl font-bold">
+                {profile.followers?.toLocaleString()}
+              </div>
               <div className="text-sm text-gray-600">Followers</div>
             </div>
             <div className="text-center">
-              <div className="text-xl font-bold">{profile.following?.toLocaleString()}</div>
+              <div className="text-xl font-bold">
+                {profile.following?.toLocaleString()}
+              </div>
               <div className="text-sm text-gray-600">Following</div>
             </div>
           </div>

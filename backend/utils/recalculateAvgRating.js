@@ -1,5 +1,5 @@
-const Rating = require('../models/Rating');
-const InstagramProfile = require('../models/InstagramProfile');
+const Rating = require("../models/Rating");
+const InstagramProfile = require("../models/InstagramProfile");
 
 module.exports = async function recalculateAvgRating(profileId) {
   const ratings = await Rating.find({ profile: profileId });

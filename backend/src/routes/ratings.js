@@ -1,48 +1,48 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const Rating = require('../../models/Rating');
-const InstagramProfile = require('../../models/InstagramProfile');
-const recalculateAvgRating = require('../../utils/recalculateAvgRating');
-router.post('/', async (req, res) => {
+const Rating = require("../../models/Rating");
+const InstagramProfile = require("../../models/InstagramProfile");
+const recalculateAvgRating = require("../../utils/recalculateAvgRating");
+router.post("/", async (req, res) => {
   const { username, rating, userId } = req.body;
 
   if (!username || !rating || !userId) {
-    return res.status(400).json({ error: 'Brakuje wymaganych danych' });
+    return res.status(400).json({ error: "Brakuje wymaganych danych" });
   }
 
   if (rating < 1 || rating > 10) {
-    return res.status(400).json({ error: 'Ocena musi być w zakresie 1-10' });
+    return res.status(400).json({ error: "Ocena musi być w zakresie 1-10" });
   }
 
   try {
     const profile = await InstagramProfile.findOne({ username });
     if (!profile) {
-      return res.status(404).json({ error: 'Nie znaleziono profilu' });
+      return res.status(404).json({ error: "Nie znaleziono profilu" });
     }
-    const existingRating = await Rating.findOne({ 
-      user: userId, 
-      profile: profile._id 
+    const existingRating = await Rating.findOne({
+      user: userId,
+      profile: profile._id,
     });
 
     if (existingRating) {
-      return res.status(409).json({ 
-        error: 'Już oceniłeś ten profil', 
-        message: 'Możesz ocenić profil tylko raz' 
+      return res.status(409).json({
+        error: "Już oceniłeś ten profil",
+        message: "Możesz ocenić profil tylko raz",
       });
     }
     const newRating = new Rating({
       user: userId,
       profile: profile._id,
-      value: rating
+      value: rating,
     });
 
     await newRating.save();
     await recalculateAvgRating(profile._id);
 
-    res.status(200).json({ message: 'Ocena zapisana pomyślnie' });
+    res.status(200).json({ message: "Ocena zapisana pomyślnie" });
   } catch (error) {
-    console.error('Błąd zapisu oceny:', error);
-    res.status(500).json({ error: 'Błąd serwera' });
+    console.error("Błąd zapisu oceny:", error);
+    res.status(500).json({ error: "Błąd serwera" });
   }
 });
 
