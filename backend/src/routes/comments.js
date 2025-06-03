@@ -5,7 +5,6 @@ const InstagramProfile = require('../../models/InstagramProfile');
 const User = require('../../models/User');
 const Rating = require('../../models/Rating');
 
-// GET /api/comments/:username - pobierz komentarze dla profilu
 router.get('/:username', async (req, res) => {
   try {
     const profile = await InstagramProfile.findOne({ username: req.params.username });
@@ -24,9 +23,6 @@ router.get('/:username', async (req, res) => {
     res.status(500).json({ error: 'Błąd serwera' });
   }
 });
-// ...existing code...
-
-// Endpoint do sprawdzania czy użytkownik ma już komentarz
 router.get('/check/:username/:userId', async (req, res) => {
   try {
     const { username, userId } = req.params;
@@ -77,7 +73,6 @@ router.put('/:commentId', async (req, res) => {
     existingComment.rating = rating;
     await existingComment.save();
 
-    // Przelicz średnią ocenę profilu
     const comments = await Comment.find({ profile: existingComment.profile });
     const avgRating = comments.reduce((sum, c) => sum + c.rating, 0) / comments.length;
     
@@ -111,8 +106,6 @@ router.post('/', async (req, res) => {
     if (!profile) {
       return res.status(404).json({ error: 'Nie znaleziono profilu' });
     }
-
-    // Sprawdź czy użytkownik już dodał komentarz/ocenę
     const existingComment = await Comment.findOne({
       user: userId,
       profile: profile._id
@@ -124,7 +117,6 @@ router.post('/', async (req, res) => {
       });
     }
 
-    // Dodaj komentarz z oceną
     const newComment = new Comment({
       user: userId,
       profile: profile._id,
@@ -134,7 +126,6 @@ router.post('/', async (req, res) => {
 
     await newComment.save();
 
-    // Przelicz średnią ocenę profilu
     const comments = await Comment.find({ profile: profile._id });
     const avgRating = comments.reduce((sum, c) => sum + c.rating, 0) / comments.length;
     
