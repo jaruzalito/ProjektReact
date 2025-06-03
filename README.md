@@ -45,7 +45,7 @@ Adrian stworzył moduł do szukania użytkowników Instagrama, a później modu�
 Inne funkcjonalności wykonywaliśmy wspólnie na zasadzie dobra ja zrobie to, a ty zrobisz tamto ;)
 
 ## D Baza Danych:
-(`mongo1.png`)
-(`mongo2.png`)
-(`mongo3.png`)
-(`mongo4.png`)
+![MongoDB Screenshot](./mongo1.png)
+![MongoDB Screenshot](./mongo2.png)
+![MongoDB Screenshot](./mongo3.png)
+![MongoDB Screenshot](./mongo4.png)
