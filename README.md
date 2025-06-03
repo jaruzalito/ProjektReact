@@ -33,7 +33,7 @@ Hasła testowe:
 Login	Hasło
 admin	admin123
 testuser1	test123
-reviewer1	revi123
+testuser2	test123
 moderator	mod123
 
 ## C. Podział prac:
@@ -46,7 +46,7 @@ Adrian stworzył moduł do szukania użytkowników Instagrama, a później modu�
 Inne funkcjonalności wykonywaliśmy wspólnie na zasadzie dobra ja zrobie to, a ty zrobisz tamto ;)
 
 ## D Baza Danych:
-<img alt="dbss" src="https://github.com/user-attachments/assets/52196267-e4b4-4303-8e19-36dbf6270d02">
+<img width="853" alt="dbss" src="https://github.com/user-attachments/assets/52196267-e4b4-4303-8e19-36dbf6270d02">
 
 <img alt="dbss" src="https://github.com/user-attachments/assets/eb0ae80c-4732-4bb1-9e52-58c161b43437">
 
