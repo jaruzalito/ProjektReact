@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Link, useNavigate, useParams } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, useNavigate, useParams, useLocation } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import './App.css';
 
@@ -246,16 +246,17 @@ function ProfileCard({ username, trustLevel, avgRating, warning, user }) {
       <div className={`trust-level ${trustLevel > 70 ? 'high' : 'low'}`}>
         Zaufanie: {trustLevel}% {trustLevel > 70 ? '✅' : '⚠️'}
       </div>
-      {avgRating && (
-        <div className="avg-rating">
-          <i className="fas fa-star"></i>
-          <span>{avgRating.toFixed(1)}/10</span>
-        </div>
-      )}
-      {warning && <div className="warning-badge">{warning}</div>}
-      <button className="view-button" disabled={!user}>
-        {user ? 'Zobacz opinie' : 'Zaloguj się aby zobaczyć'}
-      </button>
+
+
+{user ? (
+  <Link to={`/search?username=${username}`} className="view-button">
+    Zobacz opinie
+  </Link>
+) : (
+  <button className="view-button" disabled>
+    Zaloguj się aby zobaczyć
+  </button>
+)}
     </div>
   );
 }
@@ -313,51 +314,50 @@ function ProfileSearchPage({ user }) {
     }
   };
 
-  const handleSearch = async () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const usernameFromQuery = params.get('username');
+    if (usernameFromQuery) {
+      setUsername(usernameFromQuery);
+      if (user) {
+        handleSearch(usernameFromQuery);
+      }
+    }
+    // eslint-disable-next-line
+  }, [location.search, user]);
+
+  // Zmień handleSearch tak, by przyjmował argument:
+  const handleSearch = async (searchUsername) => {
+    const uname = (typeof searchUsername === 'string' ? searchUsername : username).trim();
     if (!user) {
       alert('Zaloguj się, aby móc sprawdzać profile!');
       return;
     }
-    
-    if (!username.trim()) {
+    if (!uname) {
       alert('Wprowadź nazwę użytkownika!');
       return;
     }
-    
     setLoading(true);
     setError('');
     setProfileData(null);
     setComments([]);
-    
     try {
-      const apiUrl = `${API_BASE_URL}/api/instagram/${username.trim()}`;
-      console.log('Wysyłam żądanie do:', apiUrl);
-      
+      const apiUrl = `${API_BASE_URL}/api/instagram/${uname}`;
       const response = await fetch(apiUrl, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'include'
       });
-      
-      console.log('Status odpowiedzi:', response.status);
-      console.log('Headers odpowiedzi:', response.headers);
-      
       const contentType = response.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {
-        const textResponse = await response.text();
-        console.error('Otrzymano HTML zamiast JSON:', textResponse.substring(0, 200));
         throw new Error('Serwer zwrócił HTML zamiast JSON - sprawdź konfigurację CORS i URL API');
       }
-      
       const data = await response.json();
-      console.log('Otrzymane dane:', data);
-      
       if (!response.ok) {
         throw new Error(data.error || `HTTP ${response.status}: Błąd podczas pobierania profilu`);
       }
-      
       if (data.success) {
         const trustLevel = calculateTrustLevel(data);
         setProfileData({
@@ -365,13 +365,11 @@ function ProfileSearchPage({ user }) {
           trustLevel,
           warnings: generateWarnings(data, trustLevel)
         });
-        
-        await loadComments(username.trim());
+        await loadComments(uname);
       } else {
         throw new Error(data.error || 'Nie udało się pobrać danych profilu');
       }
     } catch (err) {
-      console.error('Błąd podczas wyszukiwania profilu:', err);
       setError(`Błąd: ${err.message}`);
     } finally {
       setLoading(false);
