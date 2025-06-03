@@ -35,7 +35,7 @@ testuser1	test123	test123
 reviewer1	revi123	revi123
 moderator	mod123	mod123
 
-C. Podział prac:
+## C. Podział prac:
 Nie dzieliliśmy się na frontend i backend, tylko na moduły.
 
 Marcel zainicjalizował środowisko i aplikację, przygotował moduły rejestracji i logowania, usprawnił je.
@@ -44,3 +44,5 @@ Adrian stworzył moduł do szukania użytkowników Instagrama, a później modu�
 
 Inne funkcjonalności wykonywaliśmy wspólnie na zasadzie dobra ja zrobie to, a ty zrobisz tamto ;)
 
+## D Baza Danych:
+mongo1.png mongo2.png mongo3.png mongo4.png
