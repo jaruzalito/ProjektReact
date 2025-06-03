@@ -82,6 +82,31 @@ userSchema.index({ login: 1 });
 
 const User = mongoose.model('User', userSchema);
 
+const instagramProfileSchema = new mongoose.Schema({
+  username: { 
+    type: String, 
+    required: true, 
+    unique: true,
+    trim: true,
+    lowercase: true
+  },
+  followers: { type: Number, default: 0 },
+  following: { type: Number, default: 0 },
+  posts: { type: Number, default: 0 },
+  fullName: { type: String, default: 'Nieznane' },
+  bio: { type: String, default: 'Brak opisu' },
+  avgRating: { type: Number, default: null },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+}, {
+  timestamps: true
+});
+
+instagramProfileSchema.index({ username: 1 });
+instagramProfileSchema.index({ createdAt: -1 });
+
+const InstagramProfile = mongoose.model('InstagramProfile', instagramProfileSchema);
+
 const verifyToken = (req, res, next) => {
   const token = req.cookies.authToken;
   
@@ -98,13 +123,129 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-try {
-  const instagramRouter = require("./routes/instagram");
-  app.use("/api/instagram", instagramRouter);
-  console.log('Instagram routes loaded successfully');
-} catch (error) {
-  console.error('Error loading Instagram routes:', error);
-}
+const fetchInstagramData = async (username) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const mockData = {
+        username: username,
+        followers: Math.floor(Math.random() * 50000) + 100,
+        following: Math.floor(Math.random() * 2000) + 50,
+        posts: Math.floor(Math.random() * 500) + 10,
+        fullName: `${username} User`,
+        bio: `This is a bio for ${username}`,
+        isPrivate: false,
+        success: true
+      };
+      resolve(mockData);
+    }, 1000);
+  });
+};
+
+app.get('/api/instagram/recent', async (req, res) => {
+  try {
+    console.log('Fetching recent profiles...');
+    
+    const recentProfiles = await InstagramProfile.find({})
+      .sort({ updatedAt: -1 })
+      .limit(6)
+      .select('username followers following posts fullName bio avgRating createdAt updatedAt');
+    
+    console.log(`Found ${recentProfiles.length} recent profiles`);
+    
+    res.json({
+      success: true,
+      profiles: recentProfiles
+    });
+  } catch (error) {
+    console.error('Error fetching recent profiles:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch recent profiles'
+    });
+  }
+});
+
+app.get('/api/instagram/:username', async (req, res) => {
+  try {
+    const { username } = req.params;
+    console.log(`Fetching Instagram profile for: ${username}`);
+
+    if (!username || username.trim() === '') {
+      return res.status(400).json({
+        success: false,
+        error: 'Username is required'
+      });
+    }
+
+    const cleanUsername = username.trim().toLowerCase();
+
+    let profile = await InstagramProfile.findOne({ 
+      username: cleanUsername
+    });
+
+    if (profile) {
+      console.log('Profile found in database:', profile.username);
+      
+      profile.updatedAt = new Date();
+      await profile.save();
+      
+      return res.json({
+        success: true,
+        username: profile.username,
+        followers: profile.followers,
+        following: profile.following,
+        posts: profile.posts,
+        fullName: profile.fullName || 'Nieznane',
+        bio: profile.bio || 'Brak opisu',
+        avgRating: profile.avgRating,
+        isPrivate: false
+      });
+    }
+
+    console.log('Profile not found in database, fetching from Instagram...');
+    const instagramData = await fetchInstagramData(cleanUsername);
+
+    if (instagramData.success) {
+      const newProfile = new InstagramProfile({
+        username: cleanUsername,
+        followers: instagramData.followers,
+        following: instagramData.following,
+        posts: instagramData.posts,
+        fullName: instagramData.fullName || 'Nieznane',
+        bio: instagramData.bio || 'Brak opisu',
+        avgRating: null
+      });
+
+      await newProfile.save();
+      console.log('New profile saved to database:', newProfile.username);
+
+      return res.json({
+        success: true,
+        username: newProfile.username,
+        followers: newProfile.followers,
+        following: newProfile.following,
+        posts: newProfile.posts,
+        fullName: newProfile.fullName,
+        bio: newProfile.bio,
+        avgRating: newProfile.avgRating,
+        isPrivate: false
+      });
+    } else {
+      return res.status(404).json({
+        success: false,
+        error: 'Profile not found or private'
+      });
+    }
+
+  } catch (error) {
+    console.error('Error fetching Instagram profile:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch profile data'
+    });
+  }
+});
+
 
 try {
   const commentRoutes = require('./routes/comments');
@@ -292,6 +433,7 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log('GET /verify-token - Verify authentication');
   console.log('GET /users - Get all users (protected)');
   console.log('GET /health - Health check');
+  console.log('GET /api/instagram/recent - Get recent profiles');
   console.log('GET /api/instagram/:username - Instagram profile data');
   console.log('GET /api/comments/:username - Get comments for user');
   console.log('POST /api/comments - Add new comment');

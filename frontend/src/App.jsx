@@ -111,11 +111,71 @@ function App() {
 }
 
 function HomePage({ user }) {
-  const recentProfiles = [
-    { username: 'janek123', trustLevel: 92 },
-    { username: 'monika_bb', trustLevel: 45, warning: 'Podejrzenie bot-a!' },
-    { username: 'official_tom', trustLevel: 87 }
-  ];
+  const [recentProfiles, setRecentProfiles] = useState([]);
+  const [loadingProfiles, setLoadingProfiles] = useState(true);
+  const [profilesError, setProfilesError] = useState('');
+
+  const API_BASE_URL = process.env.NODE_ENV === 'production' 
+    ? 'http://localhost:3001' 
+    : 'http://localhost:3001';
+
+  useEffect(() => {
+    const fetchRecentProfiles = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/instagram/recent`, {
+          method: 'GET',
+          credentials: 'include'
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setRecentProfiles(data.profiles || []);
+        } else {
+          console.error('Błąd podczas pobierania ostatnich profili');
+          setProfilesError('Nie udało się pobrać ostatnich profili');
+        }
+      } catch (error) {
+        console.error('Błąd podczas pobierania ostatnich profili:', error);
+        setProfilesError('Błąd połączenia z serwerem');
+      } finally {
+        setLoadingProfiles(false);
+      }
+    };
+
+    fetchRecentProfiles();
+  }, [API_BASE_URL]);
+
+  const calculateTrustLevel = (profile) => {
+    let trust = 50; 
+    
+    if (profile.followers > 1000) trust += 15;
+    if (profile.followers > 10000) trust += 10;
+    if (profile.followers > 100000) trust += 5;
+    
+    const ratio = profile.following / Math.max(profile.followers, 1);
+    if (ratio < 0.5) trust += 10; 
+    if (ratio > 2) trust -= 15; 
+    if (ratio > 5) trust -= 20; 
+    
+    if (profile.posts > 50) trust += 10;
+    if (profile.posts < 10) trust -= 15;
+    
+    if (profile.fullName && profile.fullName !== 'Nieznane') trust += 5;
+    if (profile.bio && profile.bio !== 'Brak opisu' && profile.bio.length > 10) trust += 10;
+    
+    return Math.max(0, Math.min(100, trust));
+  };
+
+  const generateWarnings = (profile, trustLevel) => {
+    const warnings = [];
+    
+    if (trustLevel < 30) warnings.push('Bardzo niski poziom zaufania!');
+    if (profile.following / Math.max(profile.followers, 1) > 5) warnings.push('Podejrzanie dużo obserwowanych!');
+    if (profile.posts < 5) warnings.push('Bardzo mało postów');
+    if (profile.followers < 50 && profile.following > 500) warnings.push('Możliwy bot lub spam');
+    
+    return warnings;
+  };
 
   return (
     <div className="home-page">
@@ -136,23 +196,47 @@ function HomePage({ user }) {
 
       <section className="recent-checks">
         <h2 className="section-title">Ostatnio sprawdzone profile</h2>
-        <div className="profile-grid">
-          {recentProfiles.map((profile, index) => (
-            <ProfileCard 
-              key={index}
-              username={profile.username}
-              trustLevel={profile.trustLevel}
-              warning={profile.warning}
-              user={user}
-            />
-          ))}
-        </div>
+        {loadingProfiles ? (
+          <div className="loading-profiles">
+            <i className="fas fa-spinner fa-spin"></i>
+            <p>Ładowanie ostatnich profili...</p>
+          </div>
+        ) : profilesError ? (
+          <div className="profiles-error">
+            <i className="fas fa-exclamation-triangle"></i>
+            <p>{profilesError}</p>
+          </div>
+        ) : recentProfiles.length > 0 ? (
+          <div className="profile-grid">
+            {recentProfiles.map((profile, index) => {
+              const trustLevel = calculateTrustLevel(profile);
+              const warnings = generateWarnings(profile, trustLevel);
+              
+              return (
+                <ProfileCard 
+                  key={index}
+                  username={profile.username}
+                  trustLevel={trustLevel}
+                  avgRating={profile.avgRating}
+                  warning={warnings.length > 0 ? warnings[0] : null}
+                  user={user}
+                />
+              );
+            })}
+          </div>
+        ) : (
+          <div className="no-profiles">
+            <i className="fas fa-search"></i>
+            <p>Brak ostatnio sprawdzonych profili</p>
+            <Link to="/search" className="cta-button">Sprawdź pierwszy profil</Link>
+          </div>
+        )}
       </section>
     </div>
   );
 }
 
-function ProfileCard({ username, trustLevel, warning, user }) {
+function ProfileCard({ username, trustLevel, avgRating, warning, user }) {
   return (
     <div className="profile-card">
       <div className="profile-avatar">
@@ -162,6 +246,12 @@ function ProfileCard({ username, trustLevel, warning, user }) {
       <div className={`trust-level ${trustLevel > 70 ? 'high' : 'low'}`}>
         Zaufanie: {trustLevel}% {trustLevel > 70 ? '✅' : '⚠️'}
       </div>
+      {avgRating && (
+        <div className="avg-rating">
+          <i className="fas fa-star"></i>
+          <span>{avgRating.toFixed(1)}/10</span>
+        </div>
+      )}
       {warning && <div className="warning-badge">{warning}</div>}
       <button className="view-button" disabled={!user}>
         {user ? 'Zobacz opinie' : 'Zaloguj się aby zobaczyć'}
