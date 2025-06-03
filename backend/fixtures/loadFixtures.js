@@ -1,36 +1,30 @@
 const mongoose = require('mongoose');
 require('dotenv').config();
 
-// Importuj modele
 const User = require('../models/User');
 const InstagramProfile = require('../models/InstagramProfile');
 const Comment = require('../models/Comment');
 const Rating = require('../models/Rating');
 
-// Importuj dane
 const usersData = require('./users.json');
 const profilesData = require('./profiles.json');
 const commentsData = require('./comments.json');
 const ratingsData = require('./ratings.json');
 
-// Importuj utility do przeliczania średniej
 const recalculateAvgRating = require('../utils/recalculateAvgRating');
 
 const loadFixtures = async () => {
   try {
-    // Połącz z bazą danych (bez deprecated opcji)
     await mongoose.connect(process.env.MONGO_URI);
     
     console.log('✅ Połączono z bazą danych');
 
-    // Wyczyść istniejące dane
     console.log('🗑️ Czyszczenie istniejących danych...');
     await Rating.deleteMany({});
     await Comment.deleteMany({});
     await InstagramProfile.deleteMany({});
     await User.deleteMany({});
 
-    // Załaduj użytkowników
     console.log('👥 Ładowanie użytkowników...');
     const users = [];
     for (const userData of usersData) {
@@ -42,8 +36,6 @@ const loadFixtures = async () => {
       users.push(user);
       console.log(`   ✓ Dodano użytkownika: ${userData.login}`);
     }
-
-    // Załaduj profile Instagram
     console.log('📱 Ładowanie profili Instagram...');
     const profiles = [];
     for (const profileData of profilesData) {
@@ -61,8 +53,6 @@ const loadFixtures = async () => {
       profiles.push(profile);
       console.log(`   ✓ Dodano profil: @${profileData.username} (${profileData.followers.toLocaleString()} followers)`);
     }
-
-    // Załaduj komentarze
     console.log('💬 Ładowanie komentarzy...');
     for (const commentData of commentsData) {
       const user = users.find(u => u.login === commentData.userLogin);
@@ -80,8 +70,6 @@ const loadFixtures = async () => {
         console.log(`   ✓ Dodano komentarz dla @${commentData.profileUsername} (ocena: ${commentData.rating}/10)`);
       }
     }
-
-    // Załaduj oceny (ratings)
     console.log('⭐ Ładowanie ocen...');
     for (const ratingData of ratingsData) {
       const user = users.find(u => u.login === ratingData.userLogin);
@@ -98,8 +86,6 @@ const loadFixtures = async () => {
         console.log(`   ✓ Dodano ocenę dla @${ratingData.profileUsername} (${ratingData.value}/5)`);
       }
     }
-
-    // Przelicz średnie oceny dla wszystkich profili
     console.log('📊 Przeliczanie średnich ocen...');
     for (const profile of profiles) {
       await recalculateAvgRating(profile._id);

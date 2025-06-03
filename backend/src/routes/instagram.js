@@ -76,7 +76,6 @@ function parseInstagramDescription(description, requestedUsername, pageTitle) {
   const postsMatch = description.match(/(\d+(?:[.,]\d+)?[KMBTQ]?|[\d,]+)\s+Posts?/i);
   
   if (followersMatch && followingMatch && postsMatch) {
-    // Próba wyciągnięcia username z opisu
     const usernameMatch = description.match(/(?:Posts\s*)?-\s*.*?\(@([\w.]+)\)\s*on\s*Instagram/i) || 
                          description.match(/@([\w.]+)/);
     const nameMatch = description.match(/Posts?\s*-\s*(.*?)(?:\s*\(@[\w.]+\)|@|on\s+Instagram)/i);

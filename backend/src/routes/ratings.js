@@ -10,7 +10,6 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: 'Brakuje wymaganych danych' });
   }
 
-  // Walidacja zakresu oceny
   if (rating < 1 || rating > 10) {
     return res.status(400).json({ error: 'Ocena musi być w zakresie 1-10' });
   }
@@ -20,8 +19,6 @@ router.post('/', async (req, res) => {
     if (!profile) {
       return res.status(404).json({ error: 'Nie znaleziono profilu' });
     }
-
-    // Sprawdź czy użytkownik już oceniał ten profil
     const existingRating = await Rating.findOne({ 
       user: userId, 
       profile: profile._id 
@@ -33,8 +30,6 @@ router.post('/', async (req, res) => {
         message: 'Możesz ocenić profil tylko raz' 
       });
     }
-
-    // Dodaj nową ocenę
     const newRating = new Rating({
       user: userId,
       profile: profile._id,
@@ -42,8 +37,6 @@ router.post('/', async (req, res) => {
     });
 
     await newRating.save();
-
-    // Przelicz średnią ocenę profilu
     await recalculateAvgRating(profile._id);
 
     res.status(200).json({ message: 'Ocena zapisana pomyślnie' });
