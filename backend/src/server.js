@@ -147,7 +147,7 @@ app.get('/api/instagram/recent', async (req, res) => {
     
     const recentProfiles = await InstagramProfile.find({})
       .sort({ updatedAt: -1 })
-      .limit(6)
+      .limit(3)
       .select('username followers following posts fullName bio avgRating createdAt updatedAt');
     
     console.log(`Found ${recentProfiles.length} recent profiles`);
