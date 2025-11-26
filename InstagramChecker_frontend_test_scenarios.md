@@ -149,10 +149,3 @@ npm test -- --testNamePattern=HOME   # Uruchom testy zawierające "HOME"
 npm test -- --updateSnapshot         # Update snapshots
 ```
 
-### Best Practices:
-- Testuj behavior, nie implementation
-- Używaj `waitFor()` dla async operacji
-- Mockuj tylko API/fetch, nie componenty
-- Unikaj snapshot testów dla dużych komponentów
-- Testuj accessibility (role, labels)
-- Simulator real user interactions
