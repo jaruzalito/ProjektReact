@@ -39,7 +39,7 @@
 
 | ID | Nazwa testu | Kroki | Dane wejściowe | Oczekiwany rezultat | Typ testu | Priorytet |
 |---|---|---|---|---|---|---|
-| AUTH-REG-001 | Rejestracja nowego użytkownika | 1. Wyślij POST /auth/register<br>2. Sprawdź status odpowiedzi<br>3. Sprawdź dane w response | login: "testuser"<br>email: "test@example.com"<br>password: "password123" | HTTP 201<br>message: "Użytkownik został zarejestrowany" | Pozytywny | KRYTYCZNY |
+| AUTH-REG-001 | Rejestracja nowego użytkownika | 1. Wyślij POST /auth/register<br>2. Sprawdź status odpowiedzi<br>3. Sprawdź dane w response | login: "testuser"<br>email: "test@example.com"<br>password: "password123" | HTTP 201<br>message: "Użytkownik został zarejestrowany" | Pozytywny | - |
 | AUTH-REG-002 | Rejestracja - login za krótki | 1. Wyślij POST /auth/register<br>2. Sprawdź status błędu<br>3. Sprawdź komunikat | login: "ab"<br>email: "test@example.com"<br>password: "password123" | HTTP 400<br>error: "Login musi mieć co najmniej 3 znaki" | Negatywny | KRYTYCZNY |
 | AUTH-REG-003 | Rejestracja - hasło za krótkie | 1. Wyślij POST /auth/register<br>2. Sprawdź błąd | login: "testuser"<br>email: "test@example.com"<br>password: "123" | HTTP 400<br>error: "Hasło musi mieć co najmniej 6 znaków" | Negatywny | KRYTYCZNY |
 | AUTH-REG-004 | Rejestracja - email nieprawidłowy | 1. Wyślij POST /auth/register<br>2. Sprawdź błąd | login: "testuser"<br>email: "invalidemail"<br>password: "password123" | HTTP 400<br>error: "Nieprawidłowy format email" | Negatywny | SREDNI |
@@ -50,7 +50,7 @@
 
 | ID | Nazwa testu | Kroki | Dane wejściowe | Oczekiwany rezultat | Typ testu | Priorytet |
 |---|---|---|---|---|---|---|
-| AUTH-LOG-001 | Logowanie - prawidłowe dane | 1. Wyślij POST /auth/login<br>2. Sprawdź status<br>3. Sprawdź token i dane użytkownika | login: "testuser"<br>password: "password123" | HTTP 200<br>token: "mock-token"<br>user.login: "testuser" | Pozytywny | KRYTYCZNY |
+| AUTH-LOG-001 | Logowanie - prawidłowe dane | 1. Wyślij POST /auth/login<br>2. Sprawdź status<br>3. Sprawdź token i dane użytkownika | login: "testuser"<br>password: "password123" | HTTP 200<br>token: "mock-token"<br>user.login: "testuser" | Pozytywny | - |
 | AUTH-LOG-002 | Logowanie - nieprawidłowe hasło | 1. Wyślij POST /auth/login<br>2. Sprawdź błąd | login: "testuser"<br>password: "wrongpassword" | HTTP 401<br>error: "Nieprawidłowe dane logowania" | Negatywny | KRYTYCZNY |
 | AUTH-LOG-003 | Logowanie - użytkownik nie istnieje | 1. Wyślij POST /auth/login<br>2. Sprawdź błąd | login: "nonexistent"<br>password: "password123" | HTTP 401<br>error: "Nieprawidłowe dane logowania" | Negatywny | KRYTYCZNY |
 | AUTH-LOG-004 | Logowanie - brakujące dane | 1. Wyślij POST /auth/login<br>2. Sprawdź błąd | login: ""<br>password: "" | HTTP 400<br>error: "Login i hasło są wymagane" | Negatywny | SREDNI |
@@ -65,7 +65,7 @@
 
 | ID | Nazwa testu | Kroki | Dane wejściowe | Oczekiwany rezultat | Typ testu | Priorytet |
 |---|---|---|---|---|---|---|
-| IG-PROF-001 | Pobranie profilu - istniejący użytkownik | 1. Wyślij GET /instagram/testuser<br>2. Sprawdź status<br>3. Sprawdź dane w response | username: "testuser" | HTTP 200<br>Zwrócone: username, followers, following, posts | Pozytywny | KRYTYCZNY |
+| IG-PROF-001 | Pobranie profilu - istniejący użytkownik | 1. Wyślij GET /instagram/testuser<br>2. Sprawdź status<br>3. Sprawdź dane w response | username: "testuser" | HTTP 200<br>Zwrócone: username, followers, following, posts | Pozytywny | - |
 | IG-PROF-002 | Pobranie profilu - nieistniejący użytkownik | 1. Wyślij GET /instagram/nonexistent<br>2. Sprawdź status błędu | username: "nonexistent" | HTTP 404<br>error: "Profil nie istnieje" | Negatywny | SREDNI |
 | IG-PROF-003 | Pobranie profilu - timeout | 1. Mock timeout w puppeteer<br>2. Wyślij GET /instagram/testuser<br>3. Sprawdź błąd | username: "testuser" | HTTP 408<br>error: "Przekroczono limit czasu" | Negatywny | KRYTYCZNY |
 | IG-PROF-004 | Pobranie profilu - bot detection | 1. Mock błąd wykrycia bota<br>2. Wyślij GET /instagram/testuser<br>3. Sprawdź błąd | username: "testuser" | HTTP 403<br>error zawiera: "wykrył automatyczne pobieranie" | Negatywny | SREDNI |
@@ -75,7 +75,7 @@
 
 | ID | Nazwa testu | Kroki | Dane wejściowe | Oczekiwany rezultat | Typ testu | Priorytet |
 |---|---|---|---|---|---|---|
-| IG-DB-001 | Zapis profilu do bazy | 1. Pobierz profil Instagram<br>2. Sprawdź czy InstagramProfile.findOneAndUpdate() został wywołany | username: "testuser" | findOneAndUpdate() wywoływany<br>Dane zapisane w DB | Pozytywny | KRYTYCZNY |
+| IG-DB-001 | Zapis profilu do bazy | 1. Pobierz profil Instagram<br>2. Sprawdź czy InstagramProfile.findOneAndUpdate() został wywołany | username: "testuser" | findOneAndUpdate() wywoływany<br>Dane zapisane w DB | Pozytywny | - |
 | IG-DB-002 | Błąd zapisu do bazy | 1. Mock błąd findOneAndUpdate<br>2. Wyślij żądanie pobrania profilu | username: "testuser" | HTTP 500<br>Error message | Negatywny | KRYTYCZNY |
 
 ---
@@ -88,25 +88,25 @@
 |---|---|---|---|---|---|---|
 | HELP-GEN-001 | GenerateWarnings - profil null | 1. Wywołaj generateWarnings(null)<br>2. Sprawdź rezultat | profile: null | Zwrócona pusta tablica [] | Graniczny | SREDNI |
 | HELP-GEN-002 | GenerateWarnings - profil undefined | 1. Wywołaj generateWarnings(undefined) | profile: undefined | Zwrócona pusta tablica [] | Graniczny | SREDNI |
-| HELP-GEN-003 | GenerateWarnings - wysoka liczba obserwowanych | 1. Utwórz profil z following > followers * 5<br>2. Wywołaj generateWarnings() | followers: 100, following: 600 | Warning: "Wysoka liczba obserwowanych..." | Pozytywny | SREDNI |
-| HELP-GEN-004 | GenerateWarnings - mało postów | 1. Utwórz profil z followers > 1000 i posts < 10<br>2. Wywołaj generateWarnings() | followers: 5000, posts: 5 | Warning: "Mała liczba postów..." | Pozytywny | SREDNI |
-| HELP-GEN-005 | GenerateWarnings - niska średnia ocena | 1. Utwórz profil z avgRating < 2 i reviewCount > 5 | avgRating: 1.5, reviewCount: 20 | Warning: "Niska średnia ocena..." | Pozytywny | SREDNI |
-| HELP-GEN-006 | GenerateWarnings - brak recenzji | 1. Utwórz profil z reviewCount === 0 | reviewCount: 0 | Warning: "Brak recenzji..." | Pozytywny | SREDNI |
+| HELP-GEN-003 | GenerateWarnings - wysoka liczba obserwowanych | 1. Utwórz profil z following > followers * 5<br>2. Wywołaj generateWarnings() | followers: 100, following: 600 | Warning: "Wysoka liczba obserwowanych..." | Pozytywny | - |
+| HELP-GEN-004 | GenerateWarnings - mało postów | 1. Utwórz profil z followers > 1000 i posts < 10<br>2. Wywołaj generateWarnings() | followers: 5000, posts: 5 | Warning: "Mała liczba postów..." | Pozytywny | - |
+| HELP-GEN-005 | GenerateWarnings - niska średnia ocena | 1. Utwórz profil z avgRating < 2 i reviewCount > 5 | avgRating: 1.5, reviewCount: 20 | Warning: "Niska średnia ocena..." | Pozytywny | - |
+| HELP-GEN-006 | GenerateWarnings - brak recenzji | 1. Utwórz profil z reviewCount === 0 | reviewCount: 0 | Warning: "Brak recenzji..." | Pozytywny | - |
 
 ### Testy funkcji formatNumber()
 
 | ID | Nazwa testu | Kroki | Dane wejściowe | Oczekiwany rezultat | Typ testu | Priorytet |
 |---|---|---|---|---|---|---|
-| HELP-FMT-001 | FormatNumber - liczby poniżej 1000 | 1. Wywołaj formatNumber(500) | num: 500 | Zwrócone: "500" | Pozytywny | SREDNI |
-| HELP-FMT-002 | FormatNumber - liczby z przyrostkiem K | 1. Wywołaj formatNumber(1500) | num: 1500 | Zwrócone: "1.5K" | Pozytywny | SREDNI |
-| HELP-FMT-003 | FormatNumber - liczby z przyrostkiem M | 1. Wywołaj formatNumber(2500000) | num: 2500000 | Zwrócone: "2.5M" | Pozytywny | SREDNI |
+| HELP-FMT-001 | FormatNumber - liczby poniżej 1000 | 1. Wywołaj formatNumber(500) | num: 500 | Zwrócone: "500" | Pozytywny | - |
+| HELP-FMT-002 | FormatNumber - liczby z przyrostkiem K | 1. Wywołaj formatNumber(1500) | num: 1500 | Zwrócone: "1.5K" | Pozytywny | - |
+| HELP-FMT-003 | FormatNumber - liczby z przyrostkiem M | 1. Wywołaj formatNumber(2500000) | num: 2500000 | Zwrócone: "2.5M" | Pozytywny | - |
 | HELP-FMT-004 | FormatNumber - zero | 1. Wywołaj formatNumber(0) | num: 0 | Zwrócone: "0" | Graniczny | NISKI |
 
 ### Testy funkcji validateEmail()
 
 | ID | Nazwa testu | Kroki | Dane wejściowe | Oczekiwany rezultat | Typ testu | Priorytet |
 |---|---|---|---|---|---|---|
-| HELP-VEM-001 | ValidateEmail - prawidłowy email | 1. Wywołaj validateEmail('test@example.com') | email: "test@example.com" | Zwrócone: true | Pozytywny | KRYTYCZNY |
+| HELP-VEM-001 | ValidateEmail - prawidłowy email | 1. Wywołaj validateEmail('test@example.com') | email: "test@example.com" | Zwrócone: true | Pozytywny | - |
 | HELP-VEM-002 | ValidateEmail - email z podwójną kropką | 1. Wywołaj validateEmail('test..test@domain.com') | email: "test..test@domain.com" | Zwrócone: false | Negatywny | SREDNI |
 | HELP-VEM-003 | ValidateEmail - email bez @ | 1. Wywołaj validateEmail('testexample.com') | email: "testexample.com" | Zwrócone: false | Negatywny | SREDNI |
 | HELP-VEM-004 | ValidateEmail - pusty email | 1. Wywołaj validateEmail('') | email: "" | Zwrócone: false | Negatywny | NISKI |
@@ -117,7 +117,7 @@
 
 | ID | Nazwa testu | Kroki | Dane wejściowe | Oczekiwany rezultat | Typ testu | Priorytet |
 |---|---|---|---|---|---|---|
-| HELP-VUN-001 | ValidateUsername - prawidłowa nazwa | 1. Wywołaj validateUsername('testuser') | username: "testuser" | Zwrócone: true | Pozytywny | SREDNI |
+| HELP-VUN-001 | ValidateUsername - prawidłowa nazwa | 1. Wywołaj validateUsername('testuser') | username: "testuser" | Zwrócone: true | Pozytywny | - |
 | HELP-VUN-002 | ValidateUsername - nazwa za krótka | 1. Wywołaj validateUsername('ab') | username: "ab" | Zwrócone: false | Graniczny | SREDNI |
 | HELP-VUN-003 | ValidateUsername - nazwa za długa | 1. Wywołaj validateUsername('a' * 31) | username: "31 znaków" | Zwrócone: false | Graniczny | SREDNI |
 | HELP-VUN-004 | ValidateUsername - nazwa z niedozwolonym znakiem | 1. Wywołaj validateUsername('user@name') | username: "user@name" | Zwrócone: false | Negatywny | NISKI |
@@ -136,13 +136,13 @@
 | TRUST-001 | TrustLevel - profil null | 1. Wywołaj calculateTrustLevel(null) | profile: null | Zwrócone: 0 | Graniczny | SREDNI |
 | TRUST-002 | TrustLevel - profil undefined | 1. Wywołaj calculateTrustLevel(undefined) | profile: undefined | Zwrócone: 0 | Graniczny | SREDNI |
 | TRUST-003 | TrustLevel - pusty profil | 1. Wywołaj calculateTrustLevel({}) | profile: {} | Zwrócone: 0 | Graniczny | SREDNI |
-| TRUST-004 | TrustLevel - wysoki poziom zaufania | 1. Utwórz profil z dobrymi wskaźnikami<br>2. Wywołaj calculateTrustLevel() | followers: 50000, following: 1000, posts: 200, avgRating: 4.5, reviewCount: 100 | Wynik > 80 i <= 100 | Pozytywny | SREDNI |
-| TRUST-005 | TrustLevel - niski poziom zaufania | 1. Utwórz profil ze słabymi wskaźnikami<br>2. Wywołaj calculateTrustLevel() | followers: 10, following: 5000, posts: 2, avgRating: 1.5, reviewCount: 1 | Wynik < 30 | Pozytywny | SREDNI |
-| TRUST-006 | TrustLevel - średni poziom zaufania | 1. Utwórz profil ze średnimi wskaźnikami | followers: 1500, following: 800, posts: 75, avgRating: 3.2, reviewCount: 25 | Wynik między 40 i 70 | Pozytywny | SREDNI |
+| TRUST-004 | TrustLevel - wysoki poziom zaufania | 1. Utwórz profil z dobrymi wskaźnikami<br>2. Wywołaj calculateTrustLevel() | followers: 50000, following: 1000, posts: 200, avgRating: 4.5, reviewCount: 100 | Wynik > 80 i <= 100 | Pozytywny | - |
+| TRUST-005 | TrustLevel - niski poziom zaufania | 1. Utwórz profil ze słabymi wskaźnikami<br>2. Wywołaj calculateTrustLevel() | followers: 10, following: 5000, posts: 2, avgRating: 1.5, reviewCount: 1 | Wynik < 30 | Pozytywny | - |
+| TRUST-006 | TrustLevel - średni poziom zaufania | 1. Utwórz profil ze średnimi wskaźnikami | followers: 1500, following: 800, posts: 75, avgRating: 3.2, reviewCount: 25 | Wynik między 40 i 70 | Pozytywny | - |
 | TRUST-007 | TrustLevel - maksymalna wartość | 1. Utwórz profil z najlepszymi możliwymi wskaźnikami<br>2. Sprawdź czy nie przekracza 100 | followers: 1000000, following: 100, posts: 1000, avgRating: 5, reviewCount: 1000 | Zwrócone: <= 100 | Graniczny | SREDNI |
-| TRUST-008 | TrustLevel - brakujące pola | 1. Utwórz profil z tylko followers i following<br>2. Wywołaj calculateTrustLevel() | followers: 1000, following: 500 | Wynik > 0 i < 50 | Pozytywny | SREDNI |
-| TRUST-009 | TrustLevel - stosunek followers/following | 1. Utwórz profil z followers > following * 2 | followers: 1000, following: 400 | Score zawiera +20 (wysoki stosunek) | Pozytywny | SREDNI |
-| TRUST-010 | TrustLevel - dużo postów | 1. Utwórz profil z posts > 100 | posts: 200 | Score zawiera +15 | Pozytywny | SREDNI |
+| TRUST-008 | TrustLevel - brakujące pola | 1. Utwórz profil z tylko followers i following<br>2. Wywołaj calculateTrustLevel() | followers: 1000, following: 500 | Wynik > 0 i < 50 | Pozytywny | - |
+| TRUST-009 | TrustLevel - stosunek followers/following | 1. Utwórz profil z followers > following * 2 | followers: 1000, following: 400 | Score zawiera +20 (wysoki stosunek) | Pozytywny | - |
+| TRUST-010 | TrustLevel - dużo postów | 1. Utwórz profil z posts > 100 | posts: 200 | Score zawiera +15 | Pozytywny | - |
 
 ---
 
@@ -152,21 +152,21 @@
 
 | ID | Nazwa testu | Kroki | Dane wejściowe | Oczekiwany rezultat | Typ testu | Priorytet |
 |---|---|---|---|---|---|---|
-| PARSE-001 | ParseNumber - liczba bez przyrostka | 1. Wywołaj parseNumberWithSuffix('1000') | str: "1000" | Zwrócone: 1000 | Pozytywny | SREDNI |
-| PARSE-002 | ParseNumber - liczba z przyrostkiem K | 1. Wywołaj parseNumberWithSuffix('1K') | str: "1K" | Zwrócone: 1000 | Pozytywny | SREDNI |
-| PARSE-003 | ParseNumber - liczba ułamkowa z K | 1. Wywołaj parseNumberWithSuffix('1.5K') | str: "1.5K" | Zwrócone: 1500 | Pozytywny | SREDNI |
-| PARSE-004 | ParseNumber - liczba z przyrostkiem M | 1. Wywołaj parseNumberWithSuffix('1M') | str: "1M" | Zwrócone: 1000000 | Pozytywny | SREDNI |
-| PARSE-005 | ParseNumber - liczba z przyrostkiem B | 1. Wywołaj parseNumberWithSuffix('1B') | str: "1B" | Zwrócone: 1000000000 | Pozytywny | NISKI |
-| PARSE-006 | ParseNumber - liczba z przyrostkiem T | 1. Wywołaj parseNumberWithSuffix('1T') | str: "1T" | Zwrócone: 1000000000000 | Pozytywny | NISKI |
-| PARSE-007 | ParseNumber - liczba z przyrostkiem Q | 1. Wywołaj parseNumberWithSuffix('1Q') | str: "1Q" | Zwrócone: 1000000000000000 | Pozytywny | NISKI |
+| PARSE-001 | ParseNumber - liczba bez przyrostka | 1. Wywołaj parseNumberWithSuffix('1000') | str: "1000" | Zwrócone: 1000 | Pozytywny | - |
+| PARSE-002 | ParseNumber - liczba z przyrostkiem K | 1. Wywołaj parseNumberWithSuffix('1K') | str: "1K" | Zwrócone: 1000 | Pozytywny | - |
+| PARSE-003 | ParseNumber - liczba ułamkowa z K | 1. Wywołaj parseNumberWithSuffix('1.5K') | str: "1.5K" | Zwrócone: 1500 | Pozytywny | - |
+| PARSE-004 | ParseNumber - liczba z przyrostkiem M | 1. Wywołaj parseNumberWithSuffix('1M') | str: "1M" | Zwrócone: 1000000 | Pozytywny | - |
+| PARSE-005 | ParseNumber - liczba z przyrostkiem B | 1. Wywołaj parseNumberWithSuffix('1B') | str: "1B" | Zwrócone: 1000000000 | Pozytywny | - |
+| PARSE-006 | ParseNumber - liczba z przyrostkiem T | 1. Wywołaj parseNumberWithSuffix('1T') | str: "1T" | Zwrócone: 1000000000000 | Pozytywny | - |
+| PARSE-007 | ParseNumber - liczba z przyrostkiem Q | 1. Wywołaj parseNumberWithSuffix('1Q') | str: "1Q" | Zwrócone: 1000000000000000 | Pozytywny | - |
 | PARSE-008 | ParseNumber - pusty string | 1. Wywołaj parseNumberWithSuffix('') | str: "" | Zwrócone: 0 | Graniczny | SREDNI |
 | PARSE-009 | ParseNumber - null | 1. Wywołaj parseNumberWithSuffix(null) | str: null | Zwrócone: 0 | Graniczny | SREDNI |
 | PARSE-010 | ParseNumber - undefined | 1. Wywołaj parseNumberWithSuffix(undefined) | str: undefined | Zwrócone: 0 | Graniczny | SREDNI |
 | PARSE-011 | ParseNumber - nieprawidłowy tekst | 1. Wywołaj parseNumberWithSuffix('abc') | str: "abc" | Zwrócone: 0 | Negatywny | SREDNI |
-| PARSE-012 | ParseNumber - liczba z przecinkami | 1. Wywołaj parseNumberWithSuffix('1,000') | str: "1,000" | Zwrócone: 1000 | Pozytywny | SREDNI |
-| PARSE-013 | ParseNumber - liczba z spacjami | 1. Wywołaj parseNumberWithSuffix('1 000') | str: "1 000" | Zwrócone: 1000 | Pozytywny | SREDNI |
-| PARSE-014 | ParseNumber - małe litery przyrostka | 1. Wywołaj parseNumberWithSuffix('1k') | str: "1k" | Zwrócone: 1000 | Pozytywny | SREDNI |
-| PARSE-015 | ParseNumber - liczba 999K | 1. Wywołaj parseNumberWithSuffix('999K') | str: "999K" | Zwrócone: 999000 | Pozytywny | SREDNI |
+| PARSE-012 | ParseNumber - liczba z przecinkami | 1. Wywołaj parseNumberWithSuffix('1,000') | str: "1,000" | Zwrócone: 1000 | Pozytywny | - |
+| PARSE-013 | ParseNumber - liczba z spacjami | 1. Wywołaj parseNumberWithSuffix('1 000') | str: "1 000" | Zwrócone: 1000 | Pozytywny | - |
+| PARSE-014 | ParseNumber - małe litery przyrostka | 1. Wywołaj parseNumberWithSuffix('1k') | str: "1k" | Zwrócone: 1000 | Pozytywny | - |
+| PARSE-015 | ParseNumber - liczba 999K | 1. Wywołaj parseNumberWithSuffix('999K') | str: "999K" | Zwrócone: 999000 | Pozytywny | - |
 
 ---
 
@@ -179,13 +179,13 @@
 | IG-DESC-001 | ParseDescription - pusty opis | 1. Wywołaj parseInstagramDescription('', 'testuser') | description: "", username: "testuser" | Zwrócone: null | Graniczny | SREDNI |
 | IG-DESC-002 | ParseDescription - null | 1. Wywołaj parseInstagramDescription(null, 'testuser') | description: null, username: "testuser" | Zwrócone: null | Graniczny | SREDNI |
 | IG-DESC-003 | ParseDescription - undefined | 1. Wywołaj parseInstagramDescription(undefined, 'testuser') | description: undefined, username: "testuser" | Zwrócone: null | Graniczny | SREDNI |
-| IG-DESC-004 | ParseDescription - pełny format | 1. Wywołaj parseInstagramDescription() z pełnym formatem | description: "1.2K Followers, 500 Following, 100 Posts - John Doe (@johndoe) on Instagram: Love photography" | followers: 1200, following: 500, posts: 100, fullName: "John Doe", username: "johndoe", bio: "Love photography" | Pozytywny | SREDNI |
-| IG-DESC-005 | ParseDescription - format bez bio | 1. Wywołaj parseInstagramDescription() bez bio | description: "500 Followers, 200 Following, 50 Posts - John Doe (@johndoe) on Instagram:" | bio: "Brak opisu" | Pozytywny | SREDNI |
-| IG-DESC-006 | ParseDescription - format podstawowy | 1. Wywołaj parseInstagramDescription() format basic | description: "500 Followers, 200 Following, 50 Posts" | fullName: "testuser", username: "testuser", bio: "Brak opisu" | Pozytywny | SREDNI |
-| IG-DESC-007 | ParseDescription - duże liczby z przyrostkami | 1. Wywołaj parseInstagramDescription() z K, M | description: "1.5M Followers, 300 Following, 2.5K Posts - Celebrity (@celebrity) on Instagram: Famous" | followers: 1500000, following: 300, posts: 2500 | Pozytywny | SREDNI |
+| IG-DESC-004 | ParseDescription - pełny format | 1. Wywołaj parseInstagramDescription() z pełnym formatem | description: "1.2K Followers, 500 Following, 100 Posts - John Doe (@johndoe) on Instagram: Love photography" | followers: 1200, following: 500, posts: 100, fullName: "John Doe", username: "johndoe", bio: "Love photography" | Pozytywny | - |
+| IG-DESC-005 | ParseDescription - format bez bio | 1. Wywołaj parseInstagramDescription() bez bio | description: "500 Followers, 200 Following, 50 Posts - John Doe (@johndoe) on Instagram:" | bio: "Brak opisu" | Pozytywny | - |
+| IG-DESC-006 | ParseDescription - format podstawowy | 1. Wywołaj parseInstagramDescription() format basic | description: "500 Followers, 200 Following, 50 Posts" | fullName: "testuser", username: "testuser", bio: "Brak opisu" | Pozytywny | - |
+| IG-DESC-007 | ParseDescription - duże liczby z przyrostkami | 1. Wywołaj parseInstagramDescription() z K, M | description: "1.5M Followers, 300 Following, 2.5K Posts - Celebrity (@celebrity) on Instagram: Famous" | followers: 1500000, following: 300, posts: 2500 | Pozytywny | - |
 | IG-DESC-008 | ParseDescription - nie można sparsować | 1. Wywołaj parseInstagramDescription() z nieprawidłowym formatem | description: "To jest tylko tekst" | Zwrócone: null | Negatywny | SREDNI |
-| IG-DESC-009 | ParseDescription - format z liczbami bez przyrostka | 1. Wywołaj parseInstagramDescription() | description: "1000 Followers, 500 Following, 100 Posts" | followers: 1000, following: 500, posts: 100 | Pozytywny | SREDNI |
-| IG-DESC-010 | ParseDescription - obsługa spacji w bio | 1. Wywołaj parseInstagramDescription() z wieloma spacjami | description: "500 Followers Posts - Name (@user) on Instagram: Bio z wieloma spacjami" | bio: "Bio z wieloma spacjami" (znormalizowane) | Pozytywny | SREDNI |
+| IG-DESC-009 | ParseDescription - format z liczbami bez przyrostka | 1. Wywołaj parseInstagramDescription() | description: "1000 Followers, 500 Following, 100 Posts" | followers: 1000, following: 500, posts: 100 | Pozytywny | - |
+| IG-DESC-010 | ParseDescription - obsługa spacji w bio | 1. Wywołaj parseInstagramDescription() z wieloma spacjami | description: "500 Followers Posts - Name (@user) on Instagram: Bio z wieloma spacjami" | bio: "Bio z wieloma spacjami" (znormalizowane) | Pozytywny | - |
 
 ---
 
@@ -195,13 +195,13 @@
 
 | ID | Nazwa testu | Kroki | Dane wejściowe | Oczekiwany rezultat | Typ testu | Priorytet |
 |---|---|---|---|---|---|---|
-| DELAY-001 | Delay - opóźnienie 100ms | 1. Zarejestruj czas start<br>2. Wykonaj delay(100)<br>3. Zarejestruj czas end<br>4. Sprawdź różnicę | ms: 100 | Czas różnicy >= 100ms i < 150ms | Pozytywny | SREDNI |
-| DELAY-002 | Delay - opóźnienie 50ms | 1. Zarejestruj czas start<br>2. Wykonaj delay(50)<br>3. Sprawdź różnicę czasu | ms: 50 | Czas różnicy >= 50ms i < 100ms | Pozytywny | SREDNI |
+| DELAY-001 | Delay - opóźnienie 100ms | 1. Zarejestruj czas start<br>2. Wykonaj delay(100)<br>3. Zarejestruj czas end<br>4. Sprawdź różnicę | ms: 100 | Czas różnicy >= 100ms i < 150ms | Pozytywny | - |
+| DELAY-002 | Delay - opóźnienie 50ms | 1. Zarejestruj czas start<br>2. Wykonaj delay(50)<br>3. Sprawdź różnicę czasu | ms: 50 | Czas różnicy >= 50ms i < 100ms | Pozytywny | - |
 | DELAY-003 | Delay - zero milisekund | 1. Zarejestruj czas start<br>2. Wykonaj delay(0)<br>3. Sprawdź różnicę | ms: 0 | Czas różnicy < 50ms | Graniczny | NISKI |
-| DELAY-004 | Delay - zwraca Promise | 1. Wykonaj delay(10)<br>2. Sprawdź czy zwrócone to Promise | ms: 10 | Zwrócone: instanceof Promise === true | Pozytywny | SREDNI |
+| DELAY-004 | Delay - zwraca Promise | 1. Wykonaj delay(10)<br>2. Sprawdź czy zwrócone to Promise | ms: 10 | Zwrócone: instanceof Promise === true | Pozytywny | - |
 | DELAY-005 | Delay - ujemne wartości | 1. Wykonaj delay(-100)<br>2. Sprawdź czy funkcja się nie zawiesza | ms: -100 | Czas różnicy < 50ms (brak opóźnienia) | Graniczny | NISKI |
-| DELAY-006 | Delay - wiele opóźnień sekwencyjnie | 1. Wykonaj delay(50)<br>2. Wykonaj delay(50)<br>3. Sprawdź łączny czas | ms: 50 x 2 | Łączny czas >= 100ms | Pozytywny | SREDNI |
-| DELAY-007 | Delay - równoległe opóźnienia | 1. Wykonaj Promise.all([delay(50), delay(50)])<br>2. Sprawdź czas | ms: 50 x 2 (parallel) | Czas <= 100ms (parallel execution) | Pozytywny | SREDNI |
+| DELAY-006 | Delay - wiele opóźnień sekwencyjnie | 1. Wykonaj delay(50)<br>2. Wykonaj delay(50)<br>3. Sprawdź łączny czas | ms: 50 x 2 | Łączny czas >= 100ms | Pozytywny | - |
+| DELAY-007 | Delay - równoległe opóźnienia | 1. Wykonaj Promise.all([delay(50), delay(50)])<br>2. Sprawdź czas | ms: 50 x 2 (parallel) | Czas <= 100ms (parallel execution) | Pozytywny | - |
 
 ---
 
